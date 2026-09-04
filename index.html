@@ -685,7 +685,7 @@
             </div>
             
             <div class="p-6 overflow-y-auto space-y-5 text-xs sm:text-sm text-slate-700">
-                <p>Setiap log presensi & kunjungan tersimpan secara otomatis di Google Cloud Firestore menggunakan struktur koleksi berikut:</p>
+                <p>Setiap log presensi & kunjungan dari <strong>setiap perangkat</strong> tersimpan sebagai dokumen terpisah di Google Cloud Firestore. ID perangkat dan ID kunjungan dibuat unik sehingga peserta dari HP, tablet, laptop, atau komputer yang berbeda tetap tercatat semuanya.</p>
 
                 <div class="bg-slate-50 p-4 rounded-2xl border-2 border-slate-200">
                     <div class="flex items-center justify-between mb-2">
@@ -986,13 +986,25 @@ function isWithinRetention(row) {
             }
         }
 
+        // ID perangkat dibuat sekali per browser/perangkat.
+        // ID ini HANYA untuk membedakan perangkat, bukan untuk menggantikan nama peserta.
         function getVisitorKey() {
-            let key = localStorage.getItem('visitor_gemilang_key');
+            let key = localStorage.getItem('visitor_gemilang_device_id');
             if (!key) {
-                key = 'visitor_' + Math.random().toString(36).substring(2, 9);
-                localStorage.setItem('visitor_gemilang_key', key);
+                const uuid = (crypto && crypto.randomUUID) ? crypto.randomUUID() :
+                    (Date.now().toString(36) + Math.random().toString(36).substring(2, 12));
+                key = 'device_' + uuid;
+                localStorage.setItem('visitor_gemilang_device_id', key);
             }
             return key;
+        }
+
+        // ID kunjungan selalu baru. Jadi setiap submit dari perangkat apa pun
+        // menghasilkan satu dokumen visit_logs yang berbeda di Firestore.
+        function createVisitId() {
+            const uuid = (crypto && crypto.randomUUID) ? crypto.randomUUID() :
+                (Date.now().toString(36) + Math.random().toString(36).substring(2, 12));
+            return 'visit_' + uuid;
         }
 
         function getStoredVisitorInfo() {
@@ -1007,6 +1019,7 @@ function isWithinRetention(row) {
                 if (savedAt && !isNaN(savedAt.getTime()) && savedAt < getRetentionCutoffDate()) {
                     localStorage.removeItem('visitor_gemilang_profile');
                     localStorage.removeItem('visitor_gemilang_key');
+                    localStorage.removeItem('visitor_gemilang_device_id');
                     localStorage.removeItem('gemilang_visit_count');
                     return null;
                 }
@@ -1058,8 +1071,12 @@ function isWithinRetention(row) {
             let localVisitCount = parseInt(localStorage.getItem('gemilang_visit_count') || '0', 10) + 1;
             localStorage.setItem('gemilang_visit_count', localVisitCount.toString());
 
+            const visitId = createVisitId();
             const logDocData = {
+                visitId: visitId,
                 visitorId: visitorKey,
+                authUid: currentUser?.uid || null,
+                deviceId: visitorKey,
                 fullName: profileData.fullName,
                 institution: finalInst,
                 roleClass: profileData.roleClass || 'Peserta',
