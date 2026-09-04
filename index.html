@@ -466,7 +466,7 @@
                 <!-- Log Kunjungan Multi-Device -->
                 <div class="mb-4 bg-blue-50 border-2 border-blue-200 rounded-2xl p-4 text-sm text-blue-900">
                     <div class="font-black mb-1">📋 Log Kunjungan Multi-Device</div>
-                    <div>Setiap peserta yang mengisi presensi dibuat sebagai <b>log kunjungan baru</b>.
+                    <div>Setiap kunjungan tetap disimpan sebagai <b>log</b>, tetapi peserta yang sama otomatis <b>direkap menjadi satu baris</b>.
                     Kunjungan dari HP, tablet, laptop, atau komputer lain tetap tercatat di Firestore
                     dengan <b>ID kunjungan</b> dan <b>ID perangkat</b> masing-masing.</div>
                 </div>
@@ -1553,11 +1553,69 @@ function isWithinRetention(row) {
             });
         }
 
+        function getParticipantGroupKey(item) {
+            // Rekap lintas perangkat berdasarkan identitas peserta,
+            // bukan visitorId/deviceId, sehingga HP dan laptop peserta yang sama
+            // tetap masuk ke satu baris.
+            return [
+                (item.fullName || '').trim().toLowerCase(),
+                (item.institution || '').trim().toLowerCase(),
+                (item.roleClass || '').trim().toLowerCase()
+            ].join('||');
+        }
+
+        function aggregateParticipantLogs(logs) {
+            const groups = new Map();
+
+            logs.forEach(item => {
+                const key = getParticipantGroupKey(item);
+                if (!groups.has(key)) {
+                    groups.set(key, {
+                        ...item,
+                        totalVisits: 0,
+                        devices: new Set(),
+                        visitIds: [],
+                        logs: []
+                    });
+                }
+
+                const group = groups.get(key);
+                group.totalVisits += 1;
+                if (item.deviceId) group.devices.add(item.deviceId);
+                if (item.visitId || item.id) group.visitIds.push(item.visitId || item.id);
+                group.logs.push(item);
+
+                const currentDateTime = new Date(
+                    `${item.visitDate || '1970-01-01'}T${item.entryTime || '00:00:00'}`
+                );
+                const savedDateTime = new Date(
+                    `${group.visitDate || '1970-01-01'}T${group.entryTime || '00:00:00'}`
+                );
+
+                // Simpan kunjungan terakhir sebagai representasi baris peserta.
+                if (currentDateTime > savedDateTime) {
+                    group.visitDate = item.visitDate;
+                    group.entryTime = item.entryTime;
+                    group.lastActive = item.lastActive;
+                }
+            });
+
+            return Array.from(groups.values()).map(group => ({
+                ...group,
+                deviceCount: group.devices.size || 1,
+                visitIdsText: group.visitIds.join(', '),
+                devicesText: Array.from(group.devices).join(', ')
+            }));
+        }
+
         function renderAdminTable() {
             const searchVal = document.getElementById('filter-search').value.toLowerCase().trim();
             const dateVal = document.getElementById('filter-date').value;
 
-            const filtered = rawLogsData.filter(item => {
+            // Filter log mentah terlebih dahulu, kemudian gabungkan peserta yang sama.
+            // Ini membuat filter tanggal tetap berfungsi: peserta akan tampil jika
+            // memiliki setidaknya satu kunjungan pada tanggal yang dipilih.
+            const filteredLogs = rawLogsData.filter(item => {
                 const matchSearch = !searchVal ||
                     (item.fullName && item.fullName.toLowerCase().includes(searchVal)) ||
                     (item.institution && item.institution.toLowerCase().includes(searchVal)) ||
@@ -1567,9 +1625,11 @@ function isWithinRetention(row) {
                 return matchSearch && matchDate;
             });
 
+            const groupedRows = aggregateParticipantLogs(filteredLogs);
+
             const todayStr = new Date().toISOString().split('T')[0];
             const todayCount = rawLogsData.filter(i => i.visitDate === todayStr).length;
-            const uniqueVisitors = new Set(rawLogsData.map(i => i.visitorId || i.fullName)).size;
+            const uniqueVisitors = aggregateParticipantLogs(rawLogsData).length;
 
             document.getElementById('stat-total-visits').textContent = rawLogsData.length;
             document.getElementById('stat-today-visits').textContent = todayCount;
@@ -1587,13 +1647,13 @@ function isWithinRetention(row) {
             }
 
             document.getElementById('filter-count-info').textContent =
-                `Menampilkan ${filtered.length} dari total ${rawLogsData.length} data kunjungan.`;
+                `Menampilkan ${groupedRows.length} peserta dari ${filteredLogs.length} log kunjungan.`;
 
             const tbody = document.getElementById('visitor-table-body');
-            const totalPages = Math.max(1, Math.ceil(filtered.length / ADMIN_ROWS_PER_PAGE));
+            const totalPages = Math.max(1, Math.ceil(groupedRows.length / ADMIN_ROWS_PER_PAGE));
             if (adminCurrentPage > totalPages) adminCurrentPage = totalPages;
 
-            if (filtered.length === 0) {
+            if (groupedRows.length === 0) {
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="8" class="text-center py-10 text-slate-400 font-medium">
@@ -1606,12 +1666,16 @@ function isWithinRetention(row) {
             }
 
             const startIndex = (adminCurrentPage - 1) * ADMIN_ROWS_PER_PAGE;
-            const pageRows = filtered.slice(startIndex, startIndex + ADMIN_ROWS_PER_PAGE);
+            const pageRows = groupedRows.slice(startIndex, startIndex + ADMIN_ROWS_PER_PAGE);
 
             tbody.innerHTML = pageRows.map((row, index) => {
                 const lastActiveFormatted = row.lastActive
-                    ? new Date(row.lastActive).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+                    ? new Date(row.lastActive).toLocaleTimeString('id-ID', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    })
                     : '-';
+
                 return `
                     <tr class="hover:bg-amber-50/60 transition-colors">
                         <td class="py-3 px-4 text-center font-bold text-slate-400">${startIndex + index + 1}</td>
@@ -1623,14 +1687,17 @@ function isWithinRetention(row) {
                         <td class="py-3 px-4 font-mono text-xs text-slate-500">${lastActiveFormatted}</td>
                         <td class="py-3 px-4 text-center">
                             <span class="inline-flex items-center justify-center px-2.5 py-0.5 text-xs font-black bg-rose-100 text-rose-700 rounded-full">
-                                Ke-${row.visitCount || 1}
+                                ${row.totalVisits}x
                             </span>
+                            ${row.deviceCount > 1
+                                ? `<div class="text-[10px] text-blue-600 font-bold mt-1">${row.deviceCount} perangkat</div>`
+                                : ''}
                         </td>
                     </tr>
                 `;
             }).join('');
 
-            updateAdminPagination(filtered.length, totalPages, startIndex + pageRows.length);
+            updateAdminPagination(groupedRows.length, totalPages, startIndex + pageRows.length);
         }
 
         function updateAdminPagination(totalItems, totalPages, shownUntil) {
@@ -1697,30 +1764,33 @@ function isWithinRetention(row) {
                 return;
             }
 
-            const exportFormatted = rawLogsData.map((item, idx) => ({
+            const grouped = aggregateParticipantLogs(rawLogsData);
+
+            const exportFormatted = grouped.map((item, idx) => ({
                 'No': idx + 1,
                 'Nama Peserta': item.fullName || '',
                 'Instansi / Sekolah': item.institution || '',
                 'Kelas / Jabatan': item.roleClass || '',
-                'Tanggal Kunjungan': item.visitDate || '',
-                'Waktu Masuk': item.entryTime || '',
-                'Terakhir Aktif': item.lastActive ? new Date(item.lastActive).toLocaleString('id-ID') : '',
-                'Total Kunjungan Peserta': item.visitCount || 1,
-                'ID Kunjungan': item.visitId || item.id || '',
-                'ID Perangkat': item.deviceId || '',
-                'Jenis Perangkat': item.deviceType || '',
-                'Firebase UID': item.authUid || ''
+                'Tanggal Kunjungan Terakhir': item.visitDate || '',
+                'Waktu Masuk Terakhir': item.entryTime || '',
+                'Terakhir Aktif': item.lastActive
+                    ? new Date(item.lastActive).toLocaleString('id-ID')
+                    : '',
+                'Total Kunjungan': item.totalVisits || 1,
+                'Jumlah Perangkat': item.deviceCount || 1,
+                'ID Perangkat': item.devicesText || '',
+                'ID Kunjungan': item.visitIdsText || ''
             }));
 
             const worksheet = XLSX.utils.json_to_sheet(exportFormatted);
             const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Presensi SDN 85 Bengkulu");
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Rekap Peserta");
 
-            const filename = `Presensi_GEMILANG_SDN85_${new Date().toISOString().split('T')[0]}.${type}`;
+            const filename = `Rekap_Peserta_GEMILANG_SDN85_${new Date().toISOString().split('T')[0]}.${type}`;
             if (type === 'csv') XLSX.writeFile(workbook, filename, { bookType: 'csv' });
             else XLSX.writeFile(workbook, filename);
 
-            showToast(`Data presensi berhasil diexport ke ${filename}`, "success");
+            showToast(`Rekap peserta berhasil diexport ke ${filename}`, "success");
         }
 
         document.getElementById('btn-export-excel').addEventListener('click', () => exportData('xlsx'));
