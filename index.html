@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GEMILANG Trilingual SDN 85 Kota Bengkulu - Presensi & Media Pembelajaran</title>
+    <title>GEMILANG Trilingual SDN 85 Kota Bengkulu - Presensi hingga 1.000 Peserta</title>
     
     <!-- Google Fonts: Fredoka & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -464,7 +464,17 @@
                 </div>
 
                 <!-- Summary Analytics Statistics Cards -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                    <div class="bg-white p-5 rounded-2xl border-2 border-amber-200 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-bold text-slate-500 uppercase font-sans">Kapasitas Peserta</p>
+                            <h3 id="stat-capacity" class="text-3xl font-black text-amber-600 mt-1">0 / 1000</h3>
+                            <p id="stat-capacity-label" class="text-[11px] text-slate-500 font-sans mt-1">Peserta unik</p>
+                        </div>
+                        <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center text-2xl border border-amber-200">
+                            👥
+                        </div>
+                    </div>
                     <div class="bg-white p-5 rounded-2xl border-2 border-slate-200 shadow-sm flex items-center justify-between">
                         <div>
                             <p class="text-xs font-bold text-slate-500 uppercase font-sans">Total Log Kunjungan</p>
@@ -544,6 +554,18 @@
                     </div>
                 </div>
 
+                <div id="admin-pagination" class="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border-2 border-slate-200 shadow-sm font-sans">
+                    <span id="admin-page-info" class="text-xs font-bold text-slate-500">Halaman 1</span>
+                    <div class="flex items-center gap-2">
+                        <button id="btn-admin-prev" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed">
+                            ⬅️ Sebelumnya
+                        </button>
+                        <button id="btn-admin-next" class="px-4 py-2 rounded-xl bg-indigo-600 text-white font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed">
+                            Berikutnya ➡️
+                        </button>
+                    </div>
+                </div>
+
             </section>
 
         </main>
@@ -570,6 +592,9 @@
                 </div>
                 <h3 class="text-2xl font-black tracking-wide">Form Identitas Peserta</h3>
                 <p class="text-xs text-pink-100 mt-1 font-sans">Lengkapi data untuk memulai presensi & aplikasi pembelajaran GEMILANG SDN 85 Bengkulu.</p>
+                <div class="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/15 border border-white/30 text-[11px] font-bold">
+                    👥 Kapasitas layanan: hingga 1.000 peserta unik
+                </div>
             </div>
 
             <form id="identity-form" class="p-6 space-y-4">
@@ -707,6 +732,11 @@
         let isAdminLoggedIn = false;
         let heartbeatTimer = null;
         const ADMIN_PIN_CODE = "admin123";
+
+        // Kapasitas peserta unik yang didukung aplikasi
+        const MAX_UNIQUE_PARTICIPANTS = 1000;
+        const ADMIN_ROWS_PER_PAGE = 50;
+        let adminCurrentPage = 1;
 
         // Trilingual Data Dictionary (Bengkulu Dialect, ID, EN)
         const dictionary = [
@@ -1438,7 +1468,7 @@
             const dateVal = document.getElementById('filter-date').value;
 
             const filtered = rawLogsData.filter(item => {
-                const matchSearch = !searchVal || 
+                const matchSearch = !searchVal ||
                     (item.fullName && item.fullName.toLowerCase().includes(searchVal)) ||
                     (item.institution && item.institution.toLowerCase().includes(searchVal)) ||
                     (item.roleClass && item.roleClass.toLowerCase().includes(searchVal));
@@ -1455,9 +1485,24 @@
             document.getElementById('stat-today-visits').textContent = todayCount;
             document.getElementById('stat-unique-users').textContent = uniqueVisitors;
 
-            document.getElementById('filter-count-info').textContent = `Menampilkan ${filtered.length} dari total ${rawLogsData.length} data kunjungan.`;
+            const capacityEl = document.getElementById('stat-capacity');
+            const capacityLabelEl = document.getElementById('stat-capacity-label');
+            if (capacityEl) {
+                capacityEl.textContent = `${Math.min(uniqueVisitors, MAX_UNIQUE_PARTICIPANTS)} / ${MAX_UNIQUE_PARTICIPANTS}`;
+            }
+            if (capacityLabelEl) {
+                capacityLabelEl.textContent = uniqueVisitors >= MAX_UNIQUE_PARTICIPANTS
+                    ? "Kapasitas 1.000 peserta tercapai"
+                    : `Sisa kapasitas ${MAX_UNIQUE_PARTICIPANTS - uniqueVisitors} peserta`;
+            }
+
+            document.getElementById('filter-count-info').textContent =
+                `Menampilkan ${filtered.length} dari total ${rawLogsData.length} data kunjungan.`;
 
             const tbody = document.getElementById('visitor-table-body');
+            const totalPages = Math.max(1, Math.ceil(filtered.length / ADMIN_ROWS_PER_PAGE));
+            if (adminCurrentPage > totalPages) adminCurrentPage = totalPages;
+
             if (filtered.length === 0) {
                 tbody.innerHTML = `
                     <tr>
@@ -1466,14 +1511,20 @@
                             Tidak ada data kunjungan presensi yang cocok.
                         </td>
                     </tr>`;
+                updateAdminPagination(0, 1, 0);
                 return;
             }
 
-            tbody.innerHTML = filtered.map((row, index) => {
-                const lastActiveFormatted = row.lastActive ? new Date(row.lastActive).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-';
+            const startIndex = (adminCurrentPage - 1) * ADMIN_ROWS_PER_PAGE;
+            const pageRows = filtered.slice(startIndex, startIndex + ADMIN_ROWS_PER_PAGE);
+
+            tbody.innerHTML = pageRows.map((row, index) => {
+                const lastActiveFormatted = row.lastActive
+                    ? new Date(row.lastActive).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+                    : '-';
                 return `
                     <tr class="hover:bg-amber-50/60 transition-colors">
-                        <td class="py-3 px-4 text-center font-bold text-slate-400">${index + 1}</td>
+                        <td class="py-3 px-4 text-center font-bold text-slate-400">${startIndex + index + 1}</td>
                         <td class="py-3 px-4 font-black text-slate-900">${escapeHtml(row.fullName)}</td>
                         <td class="py-3 px-4 text-slate-600 font-medium">${escapeHtml(row.institution || '-')}</td>
                         <td class="py-3 px-4 text-slate-600 font-medium">${escapeHtml(row.roleClass || '-')}</td>
@@ -1488,14 +1539,65 @@
                     </tr>
                 `;
             }).join('');
+
+            updateAdminPagination(filtered.length, totalPages, startIndex + pageRows.length);
         }
 
-        document.getElementById('filter-search').addEventListener('input', renderAdminTable);
-        document.getElementById('filter-date').addEventListener('change', renderAdminTable);
+        function updateAdminPagination(totalItems, totalPages, shownUntil) {
+            const info = document.getElementById('admin-page-info');
+            const prev = document.getElementById('btn-admin-prev');
+            const next = document.getElementById('btn-admin-next');
+
+            if (info) {
+                info.textContent = totalItems === 0
+                    ? "Tidak ada data"
+                    : `Halaman ${adminCurrentPage} dari ${totalPages} • Menampilkan hingga data ke-${shownUntil} dari ${totalItems}`;
+            }
+            if (prev) prev.disabled = adminCurrentPage <= 1;
+            if (next) next.disabled = adminCurrentPage >= totalPages;
+        }
+
+        document.getElementById('filter-search').addEventListener('input', () => {
+            adminCurrentPage = 1;
+            renderAdminTable();
+        });
+        document.getElementById('filter-date').addEventListener('change', () => {
+            adminCurrentPage = 1;
+            renderAdminTable();
+        });
         document.getElementById('btn-reset-filters').addEventListener('click', () => {
             document.getElementById('filter-search').value = '';
             document.getElementById('filter-date').value = '';
+            adminCurrentPage = 1;
             renderAdminTable();
+        });
+
+        document.getElementById('btn-admin-prev').addEventListener('click', () => {
+            if (adminCurrentPage > 1) {
+                adminCurrentPage--;
+                renderAdminTable();
+            }
+        });
+
+        document.getElementById('btn-admin-next').addEventListener('click', () => {
+            const totalPages = Math.max(1, Math.ceil(
+                document.querySelectorAll('#visitor-table-body tr').length
+            ));
+            // Hitung berdasarkan data terfilter agar tetap akurat.
+            const searchVal = document.getElementById('filter-search').value.toLowerCase().trim();
+            const dateVal = document.getElementById('filter-date').value;
+            const filteredCount = rawLogsData.filter(item => {
+                const matchSearch = !searchVal ||
+                    (item.fullName && item.fullName.toLowerCase().includes(searchVal)) ||
+                    (item.institution && item.institution.toLowerCase().includes(searchVal)) ||
+                    (item.roleClass && item.roleClass.toLowerCase().includes(searchVal));
+                return matchSearch && (!dateVal || item.visitDate === dateVal);
+            }).length;
+            const pages = Math.max(1, Math.ceil(filteredCount / ADMIN_ROWS_PER_PAGE));
+            if (adminCurrentPage < pages) {
+                adminCurrentPage++;
+                renderAdminTable();
+            }
         });
 
         // Excel & CSV Exporting
