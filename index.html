@@ -463,6 +463,14 @@
                     </div>
                 </div>
 
+                <!-- Log Kunjungan Multi-Device -->
+                <div class="mb-4 bg-blue-50 border-2 border-blue-200 rounded-2xl p-4 text-sm text-blue-900">
+                    <div class="font-black mb-1">📋 Log Kunjungan Multi-Device</div>
+                    <div>Setiap peserta yang mengisi presensi dibuat sebagai <b>log kunjungan baru</b>.
+                    Kunjungan dari HP, tablet, laptop, atau komputer lain tetap tercatat di Firestore
+                    dengan <b>ID kunjungan</b> dan <b>ID perangkat</b> masing-masing.</div>
+                </div>
+
                 <!-- Summary Analytics Statistics Cards -->
                 <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
                     <div class="bg-white p-5 rounded-2xl border-2 border-amber-200 shadow-sm flex items-center justify-between">
@@ -988,6 +996,29 @@ function isWithinRetention(row) {
 
         // ID perangkat dibuat sekali per browser/perangkat.
         // ID ini HANYA untuk membedakan perangkat, bukan untuk menggantikan nama peserta.
+        function makeUniqueId(prefix = 'id') {
+            try {
+                if (crypto && crypto.randomUUID) return `${prefix}_${crypto.randomUUID()}`;
+            } catch (e) {}
+            return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+        }
+
+        function getDeviceId() {
+            let id = localStorage.getItem('gemilang_device_id');
+            if (!id) {
+                id = makeUniqueId('device');
+                localStorage.setItem('gemilang_device_id', id);
+            }
+            return id;
+        }
+
+        function getDeviceType() {
+            const ua = navigator.userAgent || '';
+            if (/iPad|Tablet/i.test(ua)) return 'Tablet';
+            if (/Mobi|Android|iPhone/i.test(ua)) return 'HP';
+            return 'Laptop/PC';
+        }
+
         function getVisitorKey() {
             let key = localStorage.getItem('visitor_gemilang_device_id');
             if (!key) {
@@ -1674,7 +1705,11 @@ function isWithinRetention(row) {
                 'Tanggal Kunjungan': item.visitDate || '',
                 'Waktu Masuk': item.entryTime || '',
                 'Terakhir Aktif': item.lastActive ? new Date(item.lastActive).toLocaleString('id-ID') : '',
-                'Total Kunjungan Peserta': item.visitCount || 1
+                'Total Kunjungan Peserta': item.visitCount || 1,
+                'ID Kunjungan': item.visitId || item.id || '',
+                'ID Perangkat': item.deviceId || '',
+                'Jenis Perangkat': item.deviceType || '',
+                'Firebase UID': item.authUid || ''
             }));
 
             const worksheet = XLSX.utils.json_to_sheet(exportFormatted);
