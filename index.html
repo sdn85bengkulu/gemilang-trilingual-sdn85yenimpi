@@ -79,13 +79,13 @@
 <body class="min-h-screen flex flex-col justify-between overflow-x-hidden p-2 sm:p-4 lg:p-6 text-slate-800 antialiased selection:bg-amber-400 selection:text-slate-900">
 
     <!-- FLOATING STICKY COUNTER SCRIPT (POJOK KANAN ATAS) -->
-    <div id="sticky-total-clicks-badge" class="sticky-top-card bg-amber-400 border-4 border-white text-slate-900 rounded-2xl p-2 sm:p-3 text-center transition-all transform hover:scale-105 flex flex-col items-center justify-center">
+    <div id="sticky-total-clicks-badge" onclick="recordNewClickLog(true)" class="sticky-top-card bg-amber-400 border-4 border-white text-slate-900 rounded-2xl p-2 sm:p-3 text-center transition-all transform hover:scale-105 flex flex-col items-center justify-center cursor-pointer shadow-lg" title="Klik untuk menambah log kunjungan">
         <div class="text-[10px] sm:text-xs font-black uppercase tracking-wider text-amber-950 flex items-center justify-center gap-1 mb-1">
             <i class="fa-solid fa-hand-pointer text-rose-600 animate-bounce"></i>
             <span>TOTAL KLIK</span>
         </div>
         <!-- External Free Visitor Counter Widget -->
-        <div class="bg-white/90 px-2 py-1 rounded-xl shadow-inner border border-amber-300">
+        <div class="bg-white/90 px-2 py-1 rounded-xl shadow-inner border border-amber-300 pointer-events-none">
             <a href='https://www.counters-free.net/' class="text-[10px] text-slate-500 font-sans hidden">free html Counter</a>
             <script type='text/javascript' src='https://www.freevisitorcounters.com/auth.php?id=c69796b2ccd82a13d4ac50cb953f602ff77a0207'></script>
             <script type="text/javascript" src="https://www.freevisitorcounters.com/en/home/counter/1636866/t/0"></script>
@@ -152,24 +152,8 @@
             <!-- Toast Notification Floating Box -->
             <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-md w-full px-4 pointer-events-none"></div>
 
-            <!-- GATE LOCKED VIEW (Displayed if participant identity is not set) -->
-            <div id="gate-locked-view" class="text-center py-12 px-4 space-y-5 bg-white/80 backdrop-blur-md rounded-3xl border-4 border-dashed border-rose-300 my-auto shadow-lg">
-                <div class="w-20 h-20 bg-rose-500 text-white rounded-3xl flex items-center justify-center mx-auto text-4xl shadow-xl border-4 border-white animate-bounce-subtle">
-                    📝
-                </div>
-                <div class="space-y-1">
-                    <h3 class="text-2xl sm:text-3xl font-black text-slate-800 tracking-wide">Presensi Peserta GEMILANG</h3>
-                    <p class="text-slate-600 text-xs sm:text-sm max-w-lg mx-auto font-sans leading-relaxed">
-                        Silakan isi <strong>Form Presensi Peserta</strong> untuk mencatat kunjungan/klik Anda dan membuka akses penuh ke Media Pembelajaran Trilingual SDN 85 Kota Bengkulu.
-                    </p>
-                </div>
-
-                <div class="flex flex-wrap gap-3 justify-center items-center pt-2">
-                    <button onclick="openPresenceModal()" class="px-6 py-3.5 bg-rose-600 hover:bg-rose-500 text-white font-black rounded-2xl text-sm shadow-lg shadow-rose-500/30 transition-all inline-flex items-center gap-2 active:scale-95 border-2 border-rose-400">
-                        <i class="fa-solid fa-file-pen text-base"></i> Isi Presensi & Catat Klik
-                    </button>
-                </div>
-            </div>
+            <!-- GATE LOCKED VIEW (Hidden so all modules are unlocked by default) -->
+            <div id="gate-locked-view" class="hidden"></div>
 
             <!-- User Welcome Profile Banner -->
             <section id="user-profile-bar" class="hidden">
@@ -737,12 +721,12 @@
             return 'Laptop/PC';
         }
 
-        // Get stored active user identity
+        // Get stored active user identity (with default fallbacks)
         function getCurrentUserIdentity() {
             return {
-                fullName: localStorage.getItem('gemilang_user_fullname') || '',
-                institution: localStorage.getItem('gemilang_user_institution') || '',
-                roleClass: localStorage.getItem('gemilang_user_roleclass') || ''
+                fullName: localStorage.getItem('gemilang_user_fullname') || 'Pengunjung / Siswa',
+                institution: localStorage.getItem('gemilang_user_institution') || 'SDN 85 Kota Bengkulu',
+                roleClass: localStorage.getItem('gemilang_user_roleclass') || 'Tamu / Umum'
             };
         }
 
@@ -752,7 +736,6 @@
          */
         async function recordNewClickLog(showToastNotice = false) {
             const user = getCurrentUserIdentity();
-            if (!user.fullName) return;
 
             await initFirebase();
 
@@ -782,7 +765,7 @@
                 logData.visitId = docRef.id;
 
                 if (showToastNotice) {
-                    showToast(`Log Kunjungan Baru Terpenuhi (+1 Klik oleh ${user.fullName})`, 'success');
+                    showToast(`Log Kunjungan Terpenuhi (+1 Klik oleh ${user.fullName})`, 'success');
                 }
             } catch (err) {
                 console.warn('Firestore fallback: Saving log to memory/localStorage', err);
@@ -936,31 +919,20 @@
 
         function checkPresenceStatus() {
             const user = getCurrentUserIdentity();
-            if (user.fullName) {
-                document.getElementById('gate-locked-view').classList.add('hidden');
-                document.getElementById('user-profile-bar').classList.remove('hidden');
-                document.getElementById('user-display-name').textContent = user.fullName;
-                document.getElementById('user-display-details').textContent = `${user.institution} • ${user.roleClass}`;
-                switchMode('belajar');
-            } else {
-                document.getElementById('gate-locked-view').classList.remove('hidden');
-                document.getElementById('user-profile-bar').classList.add('hidden');
-            }
+            document.getElementById('gate-locked-view').classList.add('hidden');
+            document.getElementById('user-profile-bar').classList.remove('hidden');
+            document.getElementById('user-display-name').textContent = user.fullName;
+            document.getElementById('user-display-details').textContent = `${user.institution} • ${user.roleClass}`;
+            switchMode('belajar');
         }
 
         window.switchMode = function(mode) {
-            const user = getCurrentUserIdentity();
-            if (!user.fullName && mode !== 'rekap') {
-                openPresenceModal();
-                return;
-            }
-
             ['belajar', 'kalimat', 'cocokkan', 'kuis', 'rekap'].forEach(m => {
                 const sec = document.getElementById(`section-${m}`);
                 const navBtn = document.getElementById(`nav-${m}`);
                 if (sec) sec.classList.add('hidden');
                 if (navBtn) {
-                    navBtn.className = "px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-amber-950 hover:bg-white/40 flex items-center gap-1.5 whitespace-nowrap";
+                    navBtn.className = "px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-amber-950 hover:bg-white/40 flex items-center gap-1.5 whitespace-nowrap cursor-pointer";
                 }
             });
 
@@ -968,7 +940,7 @@
             const targetNav = document.getElementById(`nav-${mode}`);
             if (targetSec) targetSec.classList.remove('hidden');
             if (targetNav) {
-                targetNav.className = "px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-white text-rose-600 shadow-md flex items-center gap-1.5 whitespace-nowrap";
+                targetNav.className = "px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-white text-rose-600 shadow-md flex items-center gap-1.5 whitespace-nowrap cursor-pointer";
             }
 
             if (mode === 'belajar') renderBelajarCard();
@@ -979,11 +951,9 @@
 
         window.openPresenceModal = function() {
             const user = getCurrentUserIdentity();
-            if (user.fullName) {
-                document.getElementById('input-full-name').value = user.fullName;
-                document.getElementById('input-institution').value = user.institution;
-                document.getElementById('input-role-class').value = user.roleClass;
-            }
+            document.getElementById('input-full-name').value = user.fullName !== 'Pengunjung / Siswa' ? user.fullName : '';
+            document.getElementById('input-institution').value = user.institution;
+            document.getElementById('input-role-class').value = user.roleClass !== 'Tamu / Umum' ? user.roleClass : '';
             document.getElementById('presence-modal').classList.remove('hidden');
         };
 
