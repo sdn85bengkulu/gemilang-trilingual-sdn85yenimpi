@@ -4,777 +4,1276 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GEMILANG Trilingual SDN 85 Kota Bengkulu - Presensi & Media Pembelajaran</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    
+    <!-- Google Fonts: Fredoka & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- SheetJS for Exporting Excel/CSV -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
+    <!-- JS Confetti Effect -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <!-- Firebase SDK (Compat Version for standard single-file deployment) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .header {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .header h1 {
-            color: #667eea;
-            font-size: 2em;
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            color: #666;
-            font-size: 1.1em;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            text-align: center;
-            transition: transform 0.3s;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .stat-card .icon {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-
-        .stat-card .number {
-            font-size: 2.5em;
-            font-weight: bold;
-            color: #667eea;
-            margin: 10px 0;
-        }
-
-        .stat-card .label {
-            color: #666;
-            font-size: 0.9em;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .stat-card.laptop {
-            border-left: 5px solid #4CAF50;
-        }
-
-        .stat-card.hp {
-            border-left: 5px solid #FF9800;
-        }
-
-        .stat-card.total {
-            border-left: 5px solid #667eea;
-        }
-
-        .stat-card.unique {
-            border-left: 5px solid #9C27B0;
-        }
-
-        .stat-card.today {
-            border-left: 5px solid #E91E63;
-        }
-
-        .device-breakdown {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-
-        .device-breakdown h3 {
-            color: #667eea;
-            margin-bottom: 20px;
-            font-size: 1.5em;
-        }
-
-        .device-bar {
-            margin-bottom: 20px;
-        }
-
-        .device-bar-label {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-
-        .device-bar-container {
-            width: 100%;
-            height: 30px;
-            background: #f0f0f0;
-            border-radius: 15px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .device-bar-fill {
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            transition: width 0.5s ease;
-        }
-
-        .device-bar-fill.laptop {
-            background: linear-gradient(90deg, #4CAF50, #66BB6A);
-        }
-
-        .device-bar-fill.hp {
-            background: linear-gradient(90deg, #FF9800, #FFB74D);
-        }
-
-        .content-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        @media (max-width: 768px) {
-            .content-grid {
-                grid-template-columns: 1fr;
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        fredoka: ['Fredoka', 'sans-serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        bgHijau: '#54d834',
+                        pinkKartu: '#ff5c8a',
+                        kuningHeader: '#ffcc00',
+                        biruKartu: '#bae6fd',
+                        oranyeHeader: '#f97316',
+                        hijauKartu: '#86efac',
+                        hijauHeader: '#22c55e',
+                    }
+                }
             }
         }
-
-        .card {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    </script>
+    
+    <style>
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: #54d834;
+            background-image: radial-gradient(#ffffff 15%, transparent 15%), radial-gradient(#ffffff 15%, transparent 15%);
+            background-size: 36px 36px;
+            background-position: 0 0, 18px 18px;
         }
-
-        .card h2 {
-            color: #667eea;
-            margin-bottom: 20px;
-            font-size: 1.5em;
-            border-bottom: 2px solid #667eea;
-            padding-bottom: 10px;
+        .text-stroke-white {
+            -webkit-text-stroke: 4px #ffffff;
+            paint-order: stroke fill;
         }
-
-        .nav-menu {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 20px;
+        @keyframes bounce-subtle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
         }
-
-        .nav-btn {
-            padding: 12px 20px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1em;
-            transition: all 0.3s;
+        .animate-bounce-subtle {
+            animation: bounce-subtle 2s infinite ease-in-out;
         }
-
-        .nav-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .vocabulary-card {
-            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-        }
-
-        .vocabulary-card h3 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 1.3em;
-            text-align: center;
-        }
-
-        .lang-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-            padding: 10px;
-            background: white;
-            border-radius: 8px;
-        }
-
-        .lang-flag {
-            font-size: 1.5em;
-            margin-right: 10px;
-        }
-
-        .lang-text {
-            flex: 1;
-        }
-
-        .lang-text strong {
-            display: block;
-            color: #667eea;
-            margin-bottom: 3px;
-        }
-
-        .lang-text span {
-            color: #666;
-            font-size: 0.9em;
-        }
-
-        .audio-btn {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1.2em;
-        }
-
-        .conversation-card {
-            background: linear-gradient(135deg, #ffecd2, #fcb69f);
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-        }
-
-        .conversation-card h3 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 1.3em;
-            text-align: center;
-        }
-
-        .table-container {
-            overflow-x: auto;
-            margin-top: 20px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-        }
-
-        th {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-        }
-
-        td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #eee;
-        }
-
-        tr:hover {
-            background: #f8f9fa;
-        }
-
-        .btn {
-            padding: 12px 25px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1em;
-            transition: all 0.3s;
-            margin: 5px;
-        }
-
-        .btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-secondary {
-            background: #6c757d;
-        }
-
-        .modal {
-            display: none;
+        .sticky-top-card {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            max-width: 500px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 600;
-        }
-
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 1em;
-            transition: border-color 0.3s;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-        }
-
-        .footer {
-            text-align: center;
-            color: white;
-            padding: 20px;
-            margin-top: 20px;
+            top: 1rem;
+            right: 1rem;
+            z-index: 40;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🎨 GEMILANG Trilingual SDN 85 Kota Bengkulu</h1>
-            <p>Presensi & Media Pembelajaran</p>
-        </div>
+<body class="min-h-screen flex flex-col justify-between overflow-x-hidden p-2 sm:p-4 lg:p-6 text-slate-800 antialiased selection:bg-amber-400 selection:text-slate-900">
 
-        <!-- Statistik Realtime -->
-        <div class="stats-grid">
-            <div class="stat-card total">
-                <div class="icon">👆</div>
-                <div class="number" id="totalClicks">0</div>
-                <div class="label">Total Klik</div>
-            </div>
-            <div class="stat-card unique">
-                <div class="icon">👥</div>
-                <div class="number" id="uniqueVisitors">0</div>
-                <div class="label">Peserta Unik</div>
-            </div>
-            <div class="stat-card today">
-                <div class="icon">📅</div>
-                <div class="number" id="todayVisits">0</div>
-                <div class="label">Kunjungan Hari Ini</div>
-            </div>
-            <div class="stat-card laptop">
-                <div class="icon">💻</div>
-                <div class="number" id="laptopVisitors">0</div>
-                <div class="label">Pengunjung Laptop</div>
-            </div>
-            <div class="stat-card hp">
-                <div class="icon">📱</div>
-                <div class="number" id="hpVisitors">0</div>
-                <div class="label">Pengunjung HP</div>
-            </div>
+    <!-- FLOATING STICKY COUNTER SCRIPT (POJOK KANAN ATAS) -->
+    <div id="sticky-total-clicks-badge" class="sticky-top-card bg-amber-400 border-4 border-white text-slate-900 rounded-2xl p-2 sm:p-3 text-center transition-all transform hover:scale-105 flex flex-col items-center justify-center">
+        <div class="text-[10px] sm:text-xs font-black uppercase tracking-wider text-amber-950 flex items-center justify-center gap-1 mb-1">
+            <i class="fa-solid fa-hand-pointer text-rose-600 animate-bounce"></i>
+            <span>TOTAL KLIK</span>
         </div>
-
-        <!-- Device Breakdown -->
-        <div class="device-breakdown">
-            <h3>📊 Distribusi Pengunjung Berdasarkan Perangkat</h3>
-            <div class="device-bar">
-                <div class="device-bar-label">
-                    <span>💻 Laptop / Desktop</span>
-                    <span id="laptopPercentage">0%</span>
-                </div>
-                <div class="device-bar-container">
-                    <div class="device-bar-fill laptop" id="laptopBar" style="width: 0%;">
-                        <span id="laptopCount">0</span>
-                    </div>
-                </div>
-            </div>
-            <div class="device-bar">
-                <div class="device-bar-label">
-                    <span>📱 HP / Mobile</span>
-                    <span id="hpPercentage">0%</span>
-                </div>
-                <div class="device-bar-container">
-                    <div class="device-bar-fill hp" id="hpBar" style="width: 0%;">
-                        <span id="hpCount">0</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Menu Navigasi -->
-        <div class="card">
-            <div class="nav-menu">
-                <button class="nav-btn" onclick="showSection('presensi')">📝 Presensi</button>
-                <button class="nav-btn" onclick="showSection('vocabulary')">📚 Kosakata</button>
-                <button class="nav-btn" onclick="showSection('conversation')">💬 Kalimat</button>
-                <button class="nav-btn" onclick="showSection('quiz')">🏆 Kuis</button>
-                <button class="nav-btn" onclick="showSection('recap')">📊 Rekap</button>
-            </div>
-        </div>
-
-        <!-- Section Presensi -->
-        <div id="presensi-section" class="card" style="display: none;">
-            <h2>📝 Form Presensi Peserta</h2>
-            <form id="presensiForm">
-                <div class="form-group">
-                    <label>Nama Lengkap Peserta *</label>
-                    <input type="text" id="fullName" required>
-                </div>
-                <div class="form-group">
-                    <label>Instansi / Sekolah *</label>
-                    <input type="text" id="institution" required>
-                </div>
-                <div class="form-group">
-                    <label>Kelas / Jabatan *</label>
-                    <input type="text" id="roleClass" required>
-                </div>
-                <button type="submit" class="btn">Simpan & Catat Klik 🚀</button>
-                <button type="button" class="btn btn-secondary" onclick="closeSection()">Batal</button>
-            </form>
-        </div>
-
-        <!-- Section Kosakata -->
-        <div id="vocabulary-section" class="card" style="display: none;">
-            <h2>📚 Modul Kosakata 3 Bahasa</h2>
-            <div class="vocabulary-card">
-                <h3>TOILET</h3>
-                <div class="lang-item">
-                    <span class="lang-flag">🇮🇩</span>
-                    <div class="lang-text">
-                        <strong>Bahasa Indonesia</strong>
-                        <span>Toilet - Tempat buang air</span>
-                    </div>
-                    <button class="audio-btn">🔊</button>
-                </div>
-                <div class="lang-item">
-                    <span class="lang-flag">🌾</span>
-                    <div class="lang-text">
-                        <strong>Bahasa Bengkulu</strong>
-                        <span>Jamban - Dialek Bengkulu</span>
-                    </div>
-                    <button class="audio-btn">🔊</button>
-                </div>
-                <div class="lang-item">
-                    <span class="lang-flag">🇬🇧</span>
-                    <div class="lang-text">
-                        <strong>English</strong>
-                        <span>Toilet - Place to use restroom</span>
-                    </div>
-                    <button class="audio-btn">🔊</button>
-                </div>
-            </div>
-            <div style="text-align: center;">
-                <button class="btn">⬅️ Sebelum</button>
-                <span style="margin: 0 15px; color: #666;">Kata 1 dari 12</span>
-                <button class="btn">Lanjut ➡️</button>
-            </div>
-        </div>
-
-        <!-- Section Percakapan -->
-        <div id="conversation-section" class="card" style="display: none;">
-            <h2>💬 Percakapan Sehari-hari</h2>
-            <div class="conversation-card">
-                <h3>BELAJAR KALIMAT</h3>
-                <div class="lang-item">
-                    <span class="lang-flag">🇮🇩</span>
-                    <div class="lang-text">
-                        <strong>Bahasa Indonesia</strong>
-                        <span>Saya tidak bisa datang.</span>
-                    </div>
-                    <button class="audio-btn">🔊</button>
-                </div>
-                <div class="lang-item">
-                    <span class="lang-flag">🌾</span>
-                    <div class="lang-text">
-                        <strong>Bahasa Bengkulu</strong>
-                        <span>Ambo idak pacak datang.</span>
-                    </div>
-                    <button class="audio-btn">🔊</button>
-                </div>
-                <div class="lang-item">
-                    <span class="lang-flag">🇬🇧</span>
-                    <div class="lang-text">
-                        <strong>English</strong>
-                        <span>I cannot come.</span>
-                    </div>
-                    <button class="audio-btn">🔊</button>
-                </div>
-            </div>
-            <div style="text-align: center;">
-                <button class="btn">⬅️ Sebelum</button>
-                <span style="margin: 0 15px; color: #666;">Kalimat 1 dari 5</span>
-                <button class="btn">Lanjut ➡️</button>
-            </div>
-        </div>
-
-        <!-- Section Kuis -->
-        <div id="quiz-section" class="card" style="display: none;">
-            <h2>🏆 Kuis Trilingual</h2>
-            <div style="text-align: center; padding: 30px;">
-                <div style="font-size: 1.2em; margin-bottom: 20px;">
-                    <strong>Soal 1 dari 5</strong> | Skor: <span id="quizScore">0</span>
-                </div>
-                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-                    <p style="font-size: 1.1em; margin-bottom: 15px;">Apa arti kata Bahasa Bengkulu "Kanti"?</p>
-                    <button class="btn" style="display: block; width: 100%; margin-bottom: 10px;">Teman</button>
-                    <button class="btn" style="display: block; width: 100%; margin-bottom: 10px;">Musuh</button>
-                    <button class="btn" style="display: block; width: 100%; margin-bottom: 10px;">Guru</button>
-                    <button class="btn" style="display: block; width: 100%;">Keluarga</button>
-                </div>
-                <button class="btn">Pertanyaan Selanjutnya ➡️</button>
-            </div>
-        </div>
-
-        <!-- Section Rekap -->
-        <div id="recap-section" class="card" style="display: none;">
-            <h2>📊 Rekap Visit Logs & Kunjungan</h2>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>NO</th>
-                            <th>NAMA PESERTA</th>
-                            <th>INSTANSI / SEKOLAH</th>
-                            <th>KELAS / JABATAN</th>
-                            <th>JUMLAH KLIK</th>
-                            <th>PERANGKAT TERAKHIR</th>
-                        </tr>
-                    </thead>
-                    <tbody id="recapTableBody">
-                        <tr>
-                            <td colspan="6" class="loading">Memuat data log kunjungan...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div style="margin-top: 20px; text-align: center;">
-                <button class="btn" onclick="exportToExcel()">📥 Export Excel Rekap</button>
-            </div>
-        </div>
-
-        <div class="footer">
-            <p>GEMILANG SDN 85 Kota Bengkulu © 2026</p>
-            <p>Sistem Trilingual • Presensi Realtime Firestore & Media Pembelajaran</p>
+        <!-- External Free Visitor Counter Widget -->
+        <div class="bg-white/90 px-2 py-1 rounded-xl shadow-inner border border-amber-300">
+            <a href='https://www.counters-free.net/' class="text-[10px] text-slate-500 font-sans hidden">free html Counter</a>
+            <script type='text/javascript' src='https://www.freevisitorcounters.com/auth.php?id=c69796b2ccd82a13d4ac50cb953f602ff77a0207'></script>
+            <script type="text/javascript" src="https://www.freevisitorcounters.com/en/home/counter/1636866/t/0"></script>
         </div>
     </div>
 
+    <!-- MAIN APP CONTAINER -->
+    <div class="max-w-6xl mx-auto w-full bg-white/95 rounded-3xl shadow-2xl border-4 border-white overflow-hidden flex flex-col min-h-[92vh] my-auto relative">
+        
+        <!-- HEADER APP GEMILANG -->
+        <header class="bg-amber-400 p-4 border-b-4 border-amber-300 flex flex-col lg:flex-row items-center justify-between gap-4 shadow-sm relative">
+            <div class="flex items-center gap-3 text-center sm:text-left">
+                <div class="w-12 h-12 bg-rose-500 rounded-2xl flex items-center justify-center text-2xl shadow-md border-2 border-white transform -rotate-3 hover:rotate-0 transition-transform">
+                    🎨
+                </div>
+                <div>
+                    <div class="flex items-center gap-2 justify-center sm:justify-start">
+                        <span class="px-2.5 py-0.5 bg-rose-600 text-white font-bold text-[10px] sm:text-xs rounded-full uppercase tracking-wider">Trilingual School</span>
+                        <span class="text-xs font-semibold text-amber-900 bg-amber-200/80 px-2 py-0.5 rounded-full border border-amber-300 flex items-center">
+                            <span id="db-status-dot" class="w-2.5 h-2.5 rounded-full bg-amber-600 inline-block animate-pulse me-1.5"></span>
+                            <span id="db-status-text">Menghubungkan...</span>
+                        </span>
+                    </div>
+                    <h1 class="text-xl sm:text-2xl md:text-3xl font-black text-rose-600 tracking-wide leading-tight">
+                        GEMILANG SDN 85 <span class="text-slate-800 text-sm md:text-xl font-bold">Kota Bengkulu</span>
+                    </h1>
+                </div>
+            </div>
+
+            <!-- Mode Navigation Tabs -->
+            <nav id="app-nav" class="flex items-center gap-1.5 bg-amber-500/30 p-1.5 rounded-2xl w-full lg:w-auto overflow-x-auto justify-start sm:justify-center">
+                <button id="nav-belajar" onclick="switchMode('belajar')" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-white text-rose-600 shadow-md flex items-center gap-1.5 whitespace-nowrap">
+                    📚 Belajar
+                </button>
+                <button id="nav-kalimat" onclick="switchMode('kalimat')" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-amber-950 hover:bg-white/40 flex items-center gap-1.5 whitespace-nowrap">
+                    💬 Kalimat
+                </button>
+                <button id="nav-cocokkan" onclick="switchMode('cocokkan')" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-amber-950 hover:bg-white/40 flex items-center gap-1.5 whitespace-nowrap">
+                    🧩 Cocokkan
+                </button>
+                <button id="nav-kuis" onclick="switchMode('kuis')" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-amber-950 hover:bg-white/40 flex items-center gap-1.5 whitespace-nowrap">
+                    🏆 Kuis
+                </button>
+                <button id="nav-rekap" onclick="switchMode('rekap')" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-amber-950 hover:bg-white/40 flex items-center gap-1.5 whitespace-nowrap">
+                    📊 Rekap
+                </button>
+            </nav>
+
+            <!-- Action Controls Toolbar -->
+            <div class="flex items-center gap-2 flex-wrap justify-center sm:justify-end pr-16 sm:pr-20 lg:pr-0">
+                <button id="btn-show-schema" onclick="openSchemaModal()" class="px-3 py-2 text-xs font-bold text-slate-700 bg-white hover:bg-slate-100 rounded-2xl border-2 border-slate-200 shadow-sm transition-all flex items-center gap-1.5 active:scale-95">
+                    <i class="fa-solid fa-database text-indigo-600"></i>
+                    <span>Struktur DB</span>
+                </button>
+                <button id="btn-open-form-modal" onclick="openPresenceModal()" class="px-3.5 py-2 text-xs sm:text-sm font-black text-slate-900 bg-amber-200 hover:bg-amber-300 rounded-2xl shadow-sm transition-all flex items-center gap-1.5 active:scale-95 border-2 border-amber-300">
+                    <i class="fa-solid fa-clipboard-user text-rose-600"></i>
+                    <span>Presensi Peserta</span>
+                </button>
+            </div>
+        </header>
+
+        <main class="flex-grow p-4 sm:p-6 lg:p-8 space-y-6">
+
+            <!-- Toast Notification Floating Box -->
+            <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-md w-full px-4 pointer-events-none"></div>
+
+            <!-- GATE LOCKED VIEW (Displayed if participant identity is not set) -->
+            <div id="gate-locked-view" class="text-center py-12 px-4 space-y-5 bg-white/80 backdrop-blur-md rounded-3xl border-4 border-dashed border-rose-300 my-auto shadow-lg">
+                <div class="w-20 h-20 bg-rose-500 text-white rounded-3xl flex items-center justify-center mx-auto text-4xl shadow-xl border-4 border-white animate-bounce-subtle">
+                    📝
+                </div>
+                <div class="space-y-1">
+                    <h3 class="text-2xl sm:text-3xl font-black text-slate-800 tracking-wide">Presensi Peserta GEMILANG</h3>
+                    <p class="text-slate-600 text-xs sm:text-sm max-w-lg mx-auto font-sans leading-relaxed">
+                        Silakan isi <strong>Form Presensi Peserta</strong> untuk mencatat kunjungan/klik Anda dan membuka akses penuh ke Media Pembelajaran Trilingual SDN 85 Kota Bengkulu.
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap gap-3 justify-center items-center pt-2">
+                    <button onclick="openPresenceModal()" class="px-6 py-3.5 bg-rose-600 hover:bg-rose-500 text-white font-black rounded-2xl text-sm shadow-lg shadow-rose-500/30 transition-all inline-flex items-center gap-2 active:scale-95 border-2 border-rose-400">
+                        <i class="fa-solid fa-file-pen text-base"></i> Isi Presensi & Catat Klik
+                    </button>
+                </div>
+            </div>
+
+            <!-- User Welcome Profile Banner -->
+            <section id="user-profile-bar" class="hidden">
+                <div id="welcome-card" class="bg-gradient-to-r from-rose-500 via-pink-500 to-amber-500 rounded-3xl p-5 sm:p-6 text-white shadow-xl relative overflow-hidden border-4 border-white">
+                    <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-white/20 text-white backdrop-blur-md border border-white/30">
+                                    <i class="fa-solid fa-circle-check text-emerald-300"></i> Terverifikasi Realtime Firestore
+                                </span>
+                                <span class="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-amber-400 text-slate-900">
+                                    🏫 SDN 85 Kota Bengkulu
+                                </span>
+                            </div>
+                            <h2 class="text-xl sm:text-2xl font-black tracking-wide">
+                                Selamat Datang, <span id="user-display-name" class="underline decoration-amber-300">Siswa Gemilang</span>! 👋
+                            </h2>
+                            <p id="user-display-details" class="text-xs text-white/90 font-sans">
+                                SD Negeri 85 Kota Bengkulu • Kelas --
+                            </p>
+                        </div>
+
+                        <div class="flex items-center gap-2 self-start sm:self-center flex-wrap">
+                            <button onclick="recordNewClickLog(true)" class="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-black rounded-xl text-xs shadow transition-all flex items-center gap-1.5 active:scale-95 border border-emerald-300">
+                                <i class="fa-solid fa-hand-pointer animate-pulse"></i> Klik Lagi (+1 Log)
+                            </button>
+                            <button onclick="openPresenceModal()" class="px-3.5 py-2 bg-white hover:bg-amber-50 text-rose-600 font-black rounded-xl text-xs shadow transition-all flex items-center gap-1.5 active:scale-95 border border-rose-200">
+                                <i class="fa-solid fa-id-card"></i> Ganti Profil
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 1: MODUL BELAJAR KOSAKATA -->
+            <section id="section-belajar" class="space-y-6 hidden">
+                <div class="text-center space-y-1">
+                    <span class="px-3 py-1 bg-rose-100 text-rose-700 font-extrabold text-xs rounded-full uppercase tracking-wider">Modul Kosakata 3 Bahasa</span>
+                    <h2 id="belajar-judul-besar" class="text-4xl sm:text-6xl font-extrabold text-rose-600 uppercase tracking-widest text-stroke-white drop-shadow-md animate-bounce duration-1000">
+                        TOILET
+                    </h2>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch">
+                    <!-- Bahasa Indonesia Card -->
+                    <div class="bg-pink-500 text-white rounded-3xl border-4 border-white shadow-xl overflow-hidden flex flex-col transform hover:-translate-y-1 transition-transform">
+                        <div class="bg-yellow-400 text-gray-900 text-center py-2.5 px-4 font-black text-base border-b-4 border-white tracking-wider flex justify-between items-center">
+                            <span>🇮🇩 Bahasa Indonesia</span>
+                            <button onclick="speak('id')" class="bg-white hover:bg-yellow-50 text-pink-600 p-2 rounded-full shadow-md transition-all active:scale-90" title="Dengarkan Pengucapan">
+                                🔊
+                            </button>
+                        </div>
+                        <div class="p-6 flex-1 flex flex-col justify-center items-center text-center space-y-2">
+                            <h3 id="belajar-id-kata" class="text-3xl font-extrabold drop-shadow">Toilet</h3>
+                            <p id="belajar-id-arti" class="text-sm font-medium opacity-90 font-sans">Tempat buang air</p>
+                        </div>
+                    </div>
+
+                    <!-- Bahasa Bengkulu Card -->
+                    <div class="bg-emerald-400 text-white rounded-3xl border-4 border-white shadow-xl overflow-hidden flex flex-col transform hover:-translate-y-1 transition-transform">
+                        <div class="bg-emerald-600 text-white text-center py-2.5 px-4 font-black text-base border-b-4 border-white tracking-wider flex justify-between items-center">
+                            <span>🌾 Bahasa Bengkulu</span>
+                            <button onclick="speak('bengkulu')" class="bg-white hover:bg-emerald-50 text-emerald-700 p-2 rounded-full shadow-md transition-all active:scale-90" title="Dengarkan Pengucapan">
+                                🔊
+                            </button>
+                        </div>
+                        <div class="p-5 flex-1 flex flex-col justify-between items-center text-center space-y-3">
+                            <div id="belajar-bengkulu-ilustrasi" class="w-32 h-32 bg-white rounded-2xl flex items-center justify-center p-3 shadow-inner border-2 border-emerald-100">
+                                <!-- SVG placement -->
+                            </div>
+                            <div>
+                                <h3 id="belajar-bengkulu-kata" class="text-3xl font-extrabold drop-shadow">Jamban</h3>
+                                <p id="belajar-bengkulu-arti" class="text-sm font-medium opacity-90 font-sans">Dialek Bengkulu</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- English Card -->
+                    <div class="bg-sky-400 text-white rounded-3xl border-4 border-white shadow-xl overflow-hidden flex flex-col transform hover:-translate-y-1 transition-transform">
+                        <div class="bg-orange-500 text-white text-center py-2.5 px-4 font-black text-base border-b-4 border-white tracking-wider flex justify-between items-center">
+                            <span>🇬🇧 English</span>
+                            <button onclick="speak('en')" class="bg-white hover:bg-orange-50 text-orange-600 p-2 rounded-full shadow-md transition-all active:scale-90" title="Listen Pronunciation">
+                                🔊
+                            </button>
+                        </div>
+                        <div class="p-6 flex-1 flex flex-col justify-center items-center text-center space-y-2">
+                            <h3 id="belajar-en-kata" class="text-3xl font-extrabold drop-shadow">Toilet</h3>
+                            <p id="belajar-en-arti" class="text-sm font-medium opacity-90 font-sans">Place to use restroom</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Carousel Controls -->
+                <div class="flex justify-between items-center pt-2">
+                    <button onclick="navigateWord(-1)" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black px-5 py-3 rounded-2xl flex items-center gap-2 shadow-md transition-all active:scale-95 text-sm sm:text-base border-2 border-indigo-400">
+                        ⬅️ Sebelum
+                    </button>
+                    <div class="text-xs sm:text-sm font-black text-slate-600 bg-slate-100 px-4 py-2 rounded-xl border border-slate-200">
+                        Kata <span id="belajar-index-now" class="text-rose-600 font-black">1</span> dari <span id="belajar-index-total">12</span>
+                    </div>
+                    <button onclick="navigateWord(1)" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black px-5 py-3 rounded-2xl flex items-center gap-2 shadow-md transition-all active:scale-95 text-sm sm:text-base border-2 border-indigo-400">
+                        Lanjut ➡️
+                    </button>
+                </div>
+            </section>
+
+            <!-- SECTION 2: MODUL KALIMAT -->
+            <section id="section-kalimat" class="space-y-6 hidden">
+                <div class="text-center space-y-1">
+                    <span class="px-3 py-1 bg-indigo-100 text-indigo-700 font-extrabold text-xs rounded-full uppercase tracking-wider">Percakapan Sehari-hari</span>
+                    <h2 class="text-3xl sm:text-5xl font-black text-indigo-600 tracking-wide">
+                        💬 BELAJAR KALIMAT
+                    </h2>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch">
+                    <div class="bg-pink-500 text-white rounded-3xl border-4 border-white shadow-xl overflow-hidden flex flex-col">
+                        <div class="bg-yellow-400 text-gray-900 text-center py-2 px-4 font-black text-xs sm:text-sm border-b-4 border-white flex justify-between items-center">
+                            <span>🇮🇩 Bahasa Indonesia</span>
+                            <button onclick="speakKalimat('id')" class="bg-white hover:bg-yellow-50 text-pink-600 p-1.5 rounded-full shadow transition-all active:scale-90">🔊</button>
+                        </div>
+                        <div class="p-6 flex-1 flex items-center justify-center text-center">
+                            <h3 id="kalimat-id" class="text-xl sm:text-2xl font-extrabold drop-shadow">Saya tidak bisa datang.</h3>
+                        </div>
+                    </div>
+
+                    <div class="bg-emerald-400 text-white rounded-3xl border-4 border-white shadow-xl overflow-hidden flex flex-col">
+                        <div class="bg-emerald-600 text-white text-center py-2 px-4 font-black text-xs sm:text-sm border-b-4 border-white flex justify-between items-center">
+                            <span>🌾 Bahasa Bengkulu</span>
+                            <button onclick="speakKalimat('bengkulu')" class="bg-white hover:bg-emerald-50 text-emerald-700 p-1.5 rounded-full shadow transition-all active:scale-90">🔊</button>
+                        </div>
+                        <div class="p-6 flex-1 flex items-center justify-center text-center">
+                            <h3 id="kalimat-bengkulu" class="text-xl sm:text-2xl font-extrabold drop-shadow">Ambo idak pacak datang.</h3>
+                        </div>
+                    </div>
+
+                    <div class="bg-sky-400 text-white rounded-3xl border-4 border-white shadow-xl overflow-hidden flex flex-col">
+                        <div class="bg-orange-500 text-white text-center py-2 px-4 font-black text-xs sm:text-sm border-b-4 border-white flex justify-between items-center">
+                            <span>🇬🇧 English</span>
+                            <button onclick="speakKalimat('en')" class="bg-white hover:bg-orange-50 text-orange-600 p-1.5 rounded-full shadow transition-all active:scale-90">🔊</button>
+                        </div>
+                        <div class="p-6 flex-1 flex items-center justify-center text-center">
+                            <h3 id="kalimat-en" class="text-xl sm:text-2xl font-extrabold drop-shadow">I cannot come.</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-2">
+                    <button onclick="navigateKalimat(-1)" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black px-5 py-3 rounded-2xl flex items-center gap-2 shadow-md transition-all active:scale-95 text-sm sm:text-base border-2 border-indigo-400">
+                        ⬅️ Sebelum
+                    </button>
+                    <div class="text-xs sm:text-sm font-black text-slate-600 bg-slate-100 px-4 py-2 rounded-xl border border-slate-200">
+                        Kalimat <span id="kalimat-index-now" class="text-indigo-600 font-black">1</span> dari <span id="kalimat-index-total">5</span>
+                    </div>
+                    <button onclick="navigateKalimat(1)" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black px-5 py-3 rounded-2xl flex items-center gap-2 shadow-md transition-all active:scale-95 text-sm sm:text-base border-2 border-indigo-400">
+                        Lanjut ➡️
+                    </button>
+                </div>
+            </section>
+
+            <!-- SECTION 3: MODUL COCOKKAN -->
+            <section id="section-cocokkan" class="space-y-6 hidden">
+                <div class="text-center max-w-lg mx-auto space-y-1">
+                    <span class="px-3 py-1 bg-rose-100 text-rose-700 font-extrabold text-xs rounded-full uppercase tracking-wider">Permainan Mencocokkan</span>
+                    <h2 class="text-3xl font-black text-rose-500 tracking-wide">🧩 AYO COCOKKAN KATA!</h2>
+                    <p class="text-xs sm:text-sm text-slate-600 font-sans">Hubungkan kata Bahasa Bengkulu di sebelah kiri dengan arti Bahasa Indonesianya di sebelah kanan!</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto pt-2">
+                    <div class="space-y-3" id="match-col-left"></div>
+                    <div class="space-y-3" id="match-col-right"></div>
+                </div>
+
+                <div id="match-feedback" class="text-center py-2 min-h-[32px] font-black text-base sm:text-lg transition-all"></div>
+
+                <div class="text-center pt-2">
+                    <button onclick="resetMatchingGame()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-black px-6 py-3 rounded-2xl shadow-md inline-flex items-center gap-2 transition-all active:scale-95 border-2 border-emerald-400">
+                        🔄 Atur Ulang Permainan
+                    </button>
+                </div>
+            </section>
+
+            <!-- SECTION 4: MODUL KUIS -->
+            <section id="section-kuis" class="space-y-6 hidden">
+                <div class="flex items-center justify-between bg-purple-50 p-4 rounded-2xl border-2 border-purple-200 font-sans">
+                    <div class="flex-1 mr-4">
+                        <div class="flex justify-between text-xs font-bold text-purple-700 mb-1">
+                            <span>Kemajuan Kuis</span>
+                            <span id="quiz-progress-text">Soal 1 dari 5</span>
+                        </div>
+                        <div class="w-full bg-purple-200 h-3 rounded-full overflow-hidden">
+                            <div id="quiz-progress-bar" class="bg-purple-600 h-full transition-all duration-300" style="width: 20%"></div>
+                        </div>
+                    </div>
+                    <div class="bg-purple-600 text-white px-4 py-2 rounded-xl text-center shadow">
+                        <div class="text-[10px] font-bold uppercase tracking-wider">Skor Saat Ini</div>
+                        <div id="quiz-score" class="text-xl font-black font-fredoka">0</div>
+                    </div>
+                </div>
+
+                <div id="quiz-box" class="bg-white border-4 border-amber-400 rounded-3xl p-6 sm:p-8 shadow-xl text-center max-w-2xl mx-auto space-y-6">
+                    <span class="text-6xl inline-block" id="quiz-question-emoji">🏫</span>
+                    <h3 id="quiz-question-text" class="text-xl sm:text-2xl font-black text-slate-800 leading-relaxed">
+                        Apa arti kata Bahasa Bengkulu <span class="text-rose-600 font-black font-mono">"Kanti"</span>?
+                    </h3>
+
+                    <div id="quiz-options-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2"></div>
+                    <div id="quiz-feedback" class="text-base font-black min-h-[28px]"></div>
+
+                    <button id="btn-next-quiz" onclick="nextQuizQuestion()" class="hidden w-full py-3.5 bg-rose-600 hover:bg-rose-500 text-white font-black rounded-2xl shadow transition-all active:scale-95 text-sm">
+                        Pertanyaan Selanjutnya ➡️
+                    </button>
+                </div>
+
+                <div id="quiz-finished-box" class="hidden bg-white border-4 border-emerald-400 rounded-3xl p-8 shadow-xl text-center max-w-md mx-auto space-y-4">
+                    <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-3xl flex items-center justify-center mx-auto text-4xl shadow-md border-2 border-emerald-300">
+                        🏆
+                    </div>
+                    <h3 class="text-3xl font-black text-slate-800">Kuis Selesai!</h3>
+                    <p class="text-slate-600 text-sm font-sans">Selamat! Anda telah menyelesaikan kuis GEMILANG SDN 85 Bengkulu.</p>
+                    <div class="bg-emerald-50 p-4 rounded-2xl border border-emerald-200">
+                        <span class="text-xs uppercase font-bold text-emerald-700 font-sans">Skor Akhir Anda</span>
+                        <div id="quiz-final-score" class="text-4xl font-black text-emerald-600 font-fredoka mt-1">100</div>
+                    </div>
+                    <button onclick="restartQuiz()" class="w-full py-3.5 bg-rose-600 hover:bg-rose-500 text-white font-black rounded-2xl shadow transition-all active:scale-95 text-sm border-2 border-rose-400">
+                        🔄 Coba Kuis Lagi
+                    </button>
+                </div>
+            </section>
+
+            <!-- SECTION 5: MODUL REKAP & PANEL STATISTIK REALTIME -->
+            <section id="section-rekap" class="space-y-6 hidden">
+                <div class="text-center space-y-1">
+                    <span class="px-3 py-1 bg-amber-100 text-amber-800 font-extrabold text-xs rounded-full uppercase tracking-wider">Statistik Realtime & Rekap Peserta</span>
+                    <h2 class="text-3xl sm:text-4xl font-black text-slate-800">
+                        📊 REKAP VISIT LOGS & KUNJUNGAN
+                    </h2>
+                </div>
+
+                <!-- 3 Top Cards Statistics -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 font-sans">
+                    <!-- Total Klik Counter Card -->
+                    <div class="bg-amber-400 text-slate-900 rounded-3xl p-5 border-4 border-white shadow-md flex items-center justify-between">
+                        <div>
+                            <div class="text-xs font-black uppercase tracking-wider text-amber-950">TOTAL KLIK (COUNTER)</div>
+                            <div class="mt-1 bg-white/80 p-1.5 rounded-xl border border-amber-300 inline-block">
+                                <script type='text/javascript' src='https://www.freevisitorcounters.com/auth.php?id=c69796b2ccd82a13d4ac50cb953f602ff77a0207'></script>
+                                <script type="text/javascript" src="https://www.freevisitorcounters.com/en/home/counter/1636866/t/0"></script>
+                            </div>
+                            <div class="text-[11px] text-amber-900 font-medium mt-1">Free Visitor Counter</div>
+                        </div>
+                        <div class="w-12 h-12 bg-white/40 rounded-2xl flex items-center justify-center text-2xl text-amber-900">
+                            👆
+                        </div>
+                    </div>
+
+                    <!-- Unique Participants Card -->
+                    <div class="bg-indigo-600 text-white rounded-3xl p-5 border-4 border-white shadow-md flex items-center justify-between">
+                        <div>
+                            <div class="text-xs font-black uppercase tracking-wider text-indigo-200">PESERTA UNIK</div>
+                            <div id="stat-unique-visitors" class="text-3xl sm:text-4xl font-black font-fredoka text-amber-300">0</div>
+                            <div class="text-[11px] text-indigo-100 font-medium">Grouped Nama + Instansi + Kelas</div>
+                        </div>
+                        <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-2xl">
+                            👥
+                        </div>
+                    </div>
+
+                    <!-- Today Visits Card -->
+                    <div class="bg-emerald-500 text-white rounded-3xl p-5 border-4 border-white shadow-md flex items-center justify-between">
+                        <div>
+                            <div class="text-xs font-black uppercase tracking-wider text-emerald-100">KUNJUNGAN HARI INI</div>
+                            <div id="stat-today-clicks" class="text-3xl sm:text-4xl font-black font-fredoka text-white">0</div>
+                            <div class="text-[11px] text-emerald-100 font-medium">Log klik tanggal hari ini</div>
+                        </div>
+                        <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-2xl">
+                            📅
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rekap Table Card -->
+                <div class="bg-white rounded-3xl border-4 border-slate-200 p-5 shadow-lg space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4">
+                        <div>
+                            <h3 class="text-xl font-black text-slate-800">Tabel Rekapitulasi Peserta</h3>
+                            <p class="text-xs text-slate-500 font-sans">Menggabungkan peserta yang sama menjadi 1 baris beserta total akumulasi kliknya.</p>
+                        </div>
+                        <button onclick="exportRecapToExcel()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-2xl text-xs shadow transition-all inline-flex items-center gap-2 active:scale-95 border border-emerald-400 font-sans">
+                            <i class="fa-solid fa-file-excel text-base"></i> Export Excel Rekap
+                        </button>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse font-sans text-xs sm:text-sm">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-700 uppercase font-black tracking-wider border-b-2 border-slate-200">
+                                    <th class="p-3 text-center w-12">NO</th>
+                                    <th class="p-3">NAMA PESERTA</th>
+                                    <th class="p-3">INSTANSI / SEKOLAH</th>
+                                    <th class="p-3">KELAS / JABATAN</th>
+                                    <th class="p-3 text-center">JUMLAH KLIK</th>
+                                    <th class="p-3 text-center">PERANGKAT TERAKHIR</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recap-table-body" class="divide-y divide-slate-100 font-medium text-slate-700">
+                                <tr>
+                                    <td colspan="6" class="p-8 text-center text-slate-400 italic font-sans">
+                                        Memuat data log kunjungan...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- FOOTER -->
+        <footer class="bg-slate-100 p-4 border-t-2 border-slate-200 text-center text-xs font-sans text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2">
+            <div>
+                <strong>GEMILANG SDN 85 Kota Bengkulu</strong> &copy; 2026. Presensi Realtime Firestore & Media Pembelajaran.
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="hover:text-slate-800 cursor-pointer">Sistem Trilingual</span> • 
+                <span class="hover:text-slate-800 cursor-pointer">SDN 85 Kota Bengkulu</span>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- MODAL PRESENSI PESERTA -->
+    <div id="presence-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md hidden">
+        <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border-4 border-white overflow-hidden font-sans p-6 space-y-5">
+            <div class="flex items-center justify-between border-b pb-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">📝</span>
+                    <h3 class="font-black text-lg text-slate-800 font-fredoka">Form Presensi Peserta</h3>
+                </div>
+                <button type="button" onclick="closePresenceModal()" class="text-slate-400 hover:text-slate-700 text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="presence-form" onsubmit="handlePresenceSubmit(event)" class="space-y-4 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Nama Lengkap Peserta <span class="text-rose-500">*</span></label>
+                    <input type="text" id="input-full-name" required placeholder="Contoh: Adam Syafiq" class="w-full p-3 rounded-xl border-2 border-slate-200 focus:border-rose-500 focus:outline-none font-semibold text-slate-800">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Instansi / Sekolah <span class="text-rose-500">*</span></label>
+                    <input type="text" id="input-institution" required value="SDN 85 Kota Bengkulu" placeholder="Contoh: SDN 85 Kota Bengkulu" class="w-full p-3 rounded-xl border-2 border-slate-200 focus:border-rose-500 focus:outline-none font-semibold text-slate-800">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Kelas / Jabatan <span class="text-rose-500">*</span></label>
+                    <input type="text" id="input-role-class" required placeholder="Contoh: Kelas 3A / Guru" class="w-full p-3 rounded-xl border-2 border-slate-200 focus:border-rose-500 focus:outline-none font-semibold text-slate-800">
+                </div>
+
+                <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-slate-600 font-medium leading-relaxed">
+                    <i class="fa-solid fa-circle-info text-rose-500 me-1"></i> Setiap kali tombol simpan atau masuk diklik, <strong>1 log kunjungan baru</strong> akan otomatis tersimpan di database Firestore.
+                </div>
+
+                <div class="pt-2 flex gap-2">
+                    <button type="button" onclick="closePresenceModal()" class="w-1/3 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-all">
+                        Batal
+                    </button>
+                    <button type="submit" class="w-2/3 py-3 bg-rose-600 hover:bg-rose-500 text-white font-black rounded-xl shadow-md transition-all active:scale-95 border border-rose-400 font-fredoka text-sm">
+                        Simpan & Catat Klik 🚀
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL SKEMA FIRESTORE DB -->
+    <div id="schema-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md hidden">
+        <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl border-4 border-white overflow-hidden font-sans p-6 space-y-4">
+            <div class="flex items-center justify-between border-b pb-3">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-database text-indigo-600 text-xl"></i>
+                    <h3 class="font-black text-lg text-slate-800 font-fredoka">Skema Dokumen `visit_logs`</h3>
+                </div>
+                <button type="button" onclick="closeSchemaModal()" class="text-slate-400 hover:text-slate-700 text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <pre class="bg-slate-900 text-amber-300 p-4 rounded-2xl font-mono text-xs overflow-x-auto leading-relaxed shadow-inner">
+{
+  "visitId": "auto_generated_id",
+  "visitorId": "adam_sdn_85_kelas_3",
+  "deviceId": "dev_xyz123",
+  "authUid": "auth_uid_xyz",
+  "fullName": "Adam",
+  "institution": "SDN 85",
+  "roleClass": "Kelas 3",
+  "deviceType": "HP",
+  "visitDate": "2026-09-05",
+  "entryTime": "08:15:20",
+  "timestamp": "serverTimestamp()"
+}
+            </pre>
+
+            <p class="text-xs text-slate-600 font-medium leading-relaxed">
+                *Setiap klik menambah 1 dokumen baru via <code>addDoc()</code> tanpa menimpa data terdahulu.
+            </p>
+
+            <button type="button" onclick="closeSchemaModal()" class="w-full py-2.5 bg-slate-800 text-white font-bold rounded-xl">
+                Tutup
+            </button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT APPLICATION LOGIC -->
     <script>
-        // Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
+        // Use environment variables provided by the container at runtime
+        const firebaseConfig = typeof __firebase_config !== 'undefined'
+            ? JSON.parse(__firebase_config)
+            : {
+                apiKey: "",
+                authDomain: "",
+                projectId: ""
+            };
 
-        // Initialize Firebase (commented out for demo)
-        // firebase.initializeApp(firebaseConfig);
-        // const db = firebase.firestore();
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'gemilang-sdn85-app';
 
-        // Device Detection
-        function detectDevice() {
-            const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-            if (/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase())) {
-                return 'HP';
-            }
-            return 'Laptop';
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // Strict Path Reference helper according to Rule 1
+        function getVisitLogsCollection() {
+            return db.collection('artifacts').doc(appId).collection('public').doc('data').collection('visit_logs');
         }
 
-        // Show/Hide Sections
-        function showSection(section) {
-            document.querySelectorAll('[id$="-section"]').forEach(el => {
-                el.style.display = 'none';
-            });
-            document.getElementById(section + '-section').style.display = 'block';
-            
-            if (section === 'recap') {
-                loadRecapData();
-            }
-        }
+        // Auth handling according to Rule 3
+        let isAuthInitialized = false;
 
-        function closeSection() {
-            document.querySelectorAll('[id$="-section"]').forEach(el => {
-                el.style.display = 'none';
-            });
-        }
-
-        // Load Statistics
-        async function loadStatistics() {
+        async function initFirebase() {
+            if (isAuthInitialized) return;
             try {
-                // Simulated data - replace with actual Firebase query
-                const stats = {
-                    totalClicks: 150,
-                    uniqueVisitors: 45,
-                    todayVisits: 23,
-                    laptopVisitors: 89,
-                    hpVisitors: 61
-                };
-
-                document.getElementById('totalClicks').textContent = stats.totalClicks;
-                document.getElementById('uniqueVisitors').textContent = stats.uniqueVisitors;
-                document.getElementById('todayVisits').textContent = stats.todayVisits;
-                document.getElementById('laptopVisitors').textContent = stats.laptopVisitors;
-                document.getElementById('hpVisitors').textContent = stats.hpVisitors;
-
-                // Calculate percentages
-                const total = stats.laptopVisitors + stats.hpVisitors;
-                const laptopPercent = total > 0 ? Math.round((stats.laptopVisitors / total) * 100) : 0;
-                const hpPercent = total > 0 ? Math.round((stats.hpVisitors / total) * 100) : 0;
-
-                // Update progress bars
-                document.getElementById('laptopBar').style.width = laptopPercent + '%';
-                document.getElementById('hpBar').style.width = hpPercent + '%';
-                document.getElementById('laptopPercentage').textContent = laptopPercent + '%';
-                document.getElementById('hpPercentage').textContent = hpPercent + '%';
-                document.getElementById('laptopCount').textContent = stats.laptopVisitors;
-                document.getElementById('hpCount').textContent = stats.hpVisitors;
-
-            } catch (error) {
-                console.error('Error loading statistics:', error);
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await auth.signInWithCustomToken(__initial_auth_token);
+                } else {
+                    await auth.signInAnonymously();
+                }
+                isAuthInitialized = true;
+                const dot = document.getElementById('db-status-dot');
+                const text = document.getElementById('db-status-text');
+                if (dot) dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-600 inline-block animate-pulse me-1.5";
+                if (text) text.textContent = "Firestore Active";
+            } catch (err) {
+                console.warn('Firebase Auth Error:', err);
+                try {
+                    await auth.signInAnonymously();
+                    isAuthInitialized = true;
+                } catch (e) {
+                    console.warn('Anonymous fallback auth failed:', e);
+                }
             }
         }
 
-        // Load Recap Data
-        async function loadRecapData() {
-            try {
-                // Simulated data - replace with actual Firebase query
-                const recapData = [
-                    { no: 1, name: 'Adam', institution: 'SDN 85', class: 'Kelas 3', clicks: 15, device: 'HP' },
-                    { no: 2, name: 'Budi', institution: 'SDN 85', class: 'Kelas 4', clicks: 12, device: 'Laptop' },
-                    { no: 3, name: 'Citra', institution: 'SDN 85', class: 'Kelas 5', clicks: 18, device: 'HP' },
-                    { no: 4, name: 'Dewi', institution: 'SDN 85', class: 'Kelas 6', clicks: 10, device: 'Laptop' },
-                    { no: 5, name: 'Eka', institution: 'SDN 85', class: 'Kelas 3', clicks: 8, device: 'HP' }
-                ];
+        // Local Storage / In-Memory Mock Database for instant offline fallbacks
+        let mockLogs = [];
 
-                const tbody = document.getElementById('recapTableBody');
-                tbody.innerHTML = recapData.map(row => `
-                    <tr>
-                        <td>${row.no}</td>
-                        <td>${row.name}</td>
-                        <td>${row.institution}</td>
-                        <td>${row.class}</td>
-                        <td>${row.clicks}</td>
-                        <td>${row.device === 'HP' ? '📱' : '💻'} ${row.device}</td>
-                    </tr>
-                `).join('');
-
-            } catch (error) {
-                console.error('Error loading recap data:', error);
-                document.getElementById('recapTableBody').innerHTML = `
-                    <tr>
-                        <td colspan="6" class="loading">Error memuat data</td>
-                    </tr>
-                `;
+        // Dictionary Data (12 Words)
+        const dictionary = [
+            {
+                idWord: "Toilet / Kamar Mandi", idMeaning: "Tempat buang air", bengkuluWord: "Jamban", bengkuluMeaning: "Dialek Bengkulu", enWord: "Toilet", enMeaning: "Place to use restroom",
+                svgIcon: `<svg viewBox="0 0 64 64" width="60" height="60"><rect x="18" y="10" width="28" height="34" rx="4" fill="#38bdf8"/><path d="M22 44h20v8a4 4 0 01-4 4H26a4 4 0 01-4-4v-8z" fill="#0284c7"/><circle cx="32" cy="24" r="6" fill="#ffffff"/></svg>`
+            },
+            {
+                idWord: "Sekolah", idMeaning: "Tempat menuntut ilmu", bengkuluWord: "Sekolah", bengkuluMeaning: "Dialek Bengkulu", enWord: "School", enMeaning: "Place to study",
+                svgIcon: `<svg viewBox="0 0 64 64" width="60" height="60"><path d="M32 8L4 24l28 16 28-16L32 8z" fill="#f59e0b"/><path d="M12 32v16l20 10 20-10V32" stroke="#d97706" stroke-width="4" fill="none"/></svg>`
+            },
+            {
+                idWord: "Teman / Sahabat", idMeaning: "Kawan bermain", bengkuluWord: "Kanti", bengkuluMeaning: "Kawan / Sahabat", enWord: "Friend", enMeaning: "Companion",
+                svgIcon: `<svg viewBox="0 0 64 64" width="60" height="60"><circle cx="22" cy="22" r="10" fill="#ec4899"/><circle cx="42" cy="22" r="10" fill="#8b5cf6"/><path d="M10 52c0-8 6-14 14-14s14 6 14 14" fill="#f472b6"/><path d="M30 52c0-8 6-14 14-14s14 6 14 14" fill="#a78bfa"/></svg>`
+            },
+            {
+                idWord: "Makan", idMeaning: "Mengonsumsi makanan", bengkuluWord: "Makan", bengkuluMeaning: "Dialek Bengkulu", enWord: "Eat", enMeaning: "Consume food",
+                svgIcon: `<svg viewBox="0 0 64 64" width="60" height="60"><circle cx="32" cy="32" r="24" fill="#10b981"/><ellipse cx="32" cy="32" rx="16" ry="10" fill="#ffffff"/></svg>`
+            },
+            {
+                idWord: "Tidur", idMeaning: "Beristirahat malam", bengkuluWord: "Tedo", bengkuluMeaning: "Tidur / Istirahat", enWord: "Sleep", enMeaning: "Rest at night",
+                svgIcon: `<svg viewBox="0 0 64 64" width="60" height="60"><path d="M44 14A20 20 0 1014 44a24 24 0 0030-30z" fill="#6366f1"/></svg>`
+            },
+            {
+                idWord: "Air", idMeaning: "Cairan untuk minum", bengkuluWord: "Aio", bengkuluMeaning: "Air minum", enWord: "Water", enMeaning: "Liquid drink",
+                svgIcon: `<svg viewBox="0 0 64 64" width="60" height="60"><path d="M32 8S14 30 14 42a18 18 0 0036 0C50 30 32 8 32 8z" fill="#0ea5e9"/></svg>`
+            },
+            {
+                idWord: "Pulang", idMeaning: "Kembali ke rumah", bengkuluWord: "Balik", bengkuluMeaning: "Pulang rumah", enWord: "Go Home", enMeaning: "Return home",
+                svgIcon: `<svg viewBox="0 0 64 64" width="60" height="60"><path d="M32 10L8 30h8v24h32V30h8L32 10z" fill="#ef4444"/><rect x="26" y="38" width="12" height="16" fill="#ffffff"/></svg>`
+            },
+            {
+                idWord: "Rumah", idMeaning: "Tempat tinggal", bengkuluWord: "Mah / Rumah", bengkuluMeaning: "Rumah kediaman", enWord: "House", enMeaning: "Home building",
+                svgIcon: `<svg viewBox="0 0 64 64" width="60" height="60"><path d="M32 12L10 32h6v20h32V32h6L32 12z" fill="#10b981"/><rect x="26" y="36" width="12" height="16" fill="#fef08a"/></svg>`
+            },
+            {
+                idWord: "Cantik / Indah", idMeaning: "Bagus dipandang", bengkuluWord: "Lawa", bengkuluMeaning: "Cantik / Elok", enWord: "Beautiful", enMeaning: "Pretty",
+                svgIcon: `<svg viewBox="0 0 64 64" width="60" height="60"><path d="M32 10l6.5 13.2L53 25.3l-10.5 10.2 2.5 14.5L32 43l-13 6.8 2.5-14.5L11 25.3l14.5-2.1L32 10z" fill="#f59e0b"/></svg>`
+            },
+            {
+                idWord: "Kamu", idMeaning: "Orang kedua", bengkuluWord: "Kaba", bengkuluMeaning: "Kamu / Engkau", enWord: "You", enMeaning: "Second person",
+                svgIcon: `<svg viewBox="0 0 64 64" width="60" height="60"><circle cx="32" cy="20" r="12" fill="#3b82f6"/><path d="M14 52c0-10 8-18 18-18s18 8 18 18" fill="#60a5fa"/></svg>`
+            },
+            {
+                idWord: "Saya", idMeaning: "Orang pertama", bengkuluWord: "Ambo", bengkuluMeaning: "Saya / Aku", enWord: "Me / I", enMeaning: "First person",
+                svgIcon: `<svg viewBox="0 0 64 64" width="60" height="60"><circle cx="32" cy="20" r="12" fill="#8b5cf6"/><path d="M14 52c0-10 8-18 18-18s18 8 18 18" fill="#a78bfa"/></svg>`
+            },
+            {
+                idWord: "Pergi", idMeaning: "Berangkat", bengkuluWord: "Pegi", bengkuluMeaning: "Pergi jalan", enWord: "Go", enMeaning: "Depart",
+                svgIcon: `<svg viewBox="0 0 64 64" width="60" height="60"><path d="M10 32h32M32 20l12 12-12 12" stroke="#10b981" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`
             }
+        ];
+
+        // Sentences Data
+        const sentences = [
+            { id: "Saya tidak bisa datang.", bengkulu: "Ambo idak pacak datang.", en: "I cannot come." },
+            { id: "Kamu mau pergi ke mana?", bengkulu: "Kaba ndak pegi ke mano?", en: "Where are you going?" },
+            { id: "Saya suka belajar di sekolah.", bengkulu: "Ambo suko belajar di sekolah.", en: "I like studying at school." },
+            { id: "Mari kita makan bersama kawan.", bengkulu: "Kito makan bersamo kanti.", en: "Let's eat together with friends." },
+            { id: "Rumah saya sangat bersih.", bengkulu: "Rumah ambo nian bersih.", en: "My house is very clean." }
+        ];
+
+        // Quiz Questions Data
+        const quizData = [
+            { question: 'Apa arti kata Bahasa Bengkulu "Kanti"?', emoji: "🤝", options: ["Teman / Sahabat", "Musuh", "Guru", "Makanan"], correct: 0 },
+            { question: 'Bagaimana menyebut "Saya" dalam Bahasa Bengkulu?', emoji: "🙋‍♂️", options: ["Kaba", "Ambo", "Kami", "Dialo"], correct: 1 },
+            { question: 'Apa terjemahan Bahasa Bengkulu dari kata "Tidur"?', emoji: "😴", options: ["Makan", "Balik", "Tedo", "Pegi"], correct: 2 },
+            { question: 'Terjemahkan kalimat "Ambo idak pacak datang" ke Bahasa Indonesia:', emoji: "💬", options: ["Saya akan datang besok", "Saya tidak bisa datang", "Kamu boleh pergi", "Mari makan bersama"], correct: 1 },
+            { question: 'Apa sebutan "Toilet" dalam dialek lokal Bengkulu?', emoji: "🚽", options: ["Jamban", "Rumah", "Sekolah", "Lawa"], correct: 0 }
+        ];
+
+        // App state variables
+        let currentWordIndex = 0;
+        let currentSentenceIndex = 0;
+        let quizCurrentIndex = 0;
+        let quizScore = 0;
+        let currentGroupedRecap = [];
+
+        // Generate or fetch Device ID
+        function getDeviceId() {
+            let devId = localStorage.getItem('gemilang_device_id');
+            if (!devId) {
+                devId = 'dev_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now().toString(36);
+                localStorage.setItem('gemilang_device_id', devId);
+            }
+            return devId;
         }
 
-        // Form Submission
-        document.getElementById('presensiForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
+        // Detect device type (HP, Tablet, Laptop/PC)
+        function getDeviceType() {
+            const ua = navigator.userAgent;
+            if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) return 'Tablet';
+            if (/Mobile|iP(hone|od)|Android|BlackBerry|IEMobile|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/i.test(ua)) return 'HP';
+            return 'Laptop/PC';
+        }
+
+        // Get stored active user identity
+        function getCurrentUserIdentity() {
+            return {
+                fullName: localStorage.getItem('gemilang_user_fullname') || '',
+                institution: localStorage.getItem('gemilang_user_institution') || '',
+                roleClass: localStorage.getItem('gemilang_user_roleclass') || ''
+            };
+        }
+
+        /**
+         * RECORD NEW CLICK LOG
+         * Rule: EVERY CLICK CREATES 1 NEW DOCUMENT IN FIRESTORE `visit_logs`.
+         */
+        async function recordNewClickLog(showToastNotice = false) {
+            const user = getCurrentUserIdentity();
+            if (!user.fullName) return;
+
+            await initFirebase();
+
+            const now = new Date();
+            const visitDate = now.toISOString().split('T')[0]; // YYYY-MM-DD
+            const entryTime = now.toTimeString().split(' ')[0]; // HH:MM:SS
             
-            const fullName = document.getElementById('fullName').value;
-            const institution = document.getElementById('institution').value;
-            const roleClass = document.getElementById('roleClass').value;
-            const deviceType = detectDevice();
+            // Normalized Visitor ID
+            const visitorId = `${user.fullName}_${user.institution}_${user.roleClass}`.toLowerCase().replace(/\s+/g, '_');
 
-            const visitLog = {
-                fullName: fullName,
-                institution: institution,
-                roleClass: roleClass,
-                deviceType: deviceType,
-                visitDate: new Date().toISOString().split('T')[0],
-                entryTime: new Date().toTimeString().split(' ')[0],
-                timestamp: new Date()
+            const logData = {
+                visitorId: visitorId,
+                deviceId: getDeviceId(),
+                authUid: auth.currentUser ? auth.currentUser.uid : 'anon_' + getDeviceId(),
+                fullName: user.fullName,
+                institution: user.institution,
+                roleClass: user.roleClass,
+                deviceType: getDeviceType(),
+                visitDate: visitDate,
+                entryTime: entryTime,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
 
             try {
-                // Simulated save - replace with actual Firebase addDoc
-                console.log('Saving visit log:', visitLog);
-                alert('Presensi berhasil disimpan! Perangkat: ' + deviceType);
-                
-                // Reset form
-                document.getElementById('presensiForm').reset();
-                closeSection();
-                
-                // Reload statistics
-                loadStatistics();
-                
-            } catch (error) {
-                console.error('Error saving visit log:', error);
-                alert('Error menyimpan presensi');
-            }
-        });
+                const collectionRef = getVisitLogsCollection();
+                const docRef = await collectionRef.add(logData);
+                logData.visitId = docRef.id;
 
-        // Export to Excel
-        function exportToExcel() {
-            alert('Fitur export Excel akan segera tersedia!');
+                if (showToastNotice) {
+                    showToast(`Log Kunjungan Baru Terpenuhi (+1 Klik oleh ${user.fullName})`, 'success');
+                }
+            } catch (err) {
+                console.warn('Firestore fallback: Saving log to memory/localStorage', err);
+                logData.visitId = 'local_' + Date.now() + '_' + Math.random().toString(36).substring(2, 5);
+                mockLogs.push(logData);
+                localStorage.setItem('gemilang_mock_logs', JSON.stringify(mockLogs));
+                processAndRenderLogs(getCombinedRawLogs());
+                if (showToastNotice) {
+                    showToast(`Log Klik Tersimpan (+1 Klik)`, 'success');
+                }
+            }
         }
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            loadStatistics();
-            showSection('presensi');
-        });
+        function getCombinedRawLogs() {
+            const localSaved = JSON.parse(localStorage.getItem('gemilang_mock_logs') || '[]');
+            return [...mockLogs, ...localSaved];
+        }
 
-        // Real-time updates (commented out - enable with Firebase)
-        /*
-        db.collection('visit_logs').onSnapshot((snapshot) => {
-            loadStatistics();
+        // Listen to Firestore `visit_logs` in Realtime using onSnapshot
+        async function initRealtimeLogsListener() {
+            await initFirebase();
+
+            getVisitLogsCollection().onSnapshot(snapshot => {
+                const firestoreLogs = [];
+                snapshot.forEach(doc => {
+                    const d = doc.data();
+                    d.visitId = doc.id;
+                    firestoreLogs.push(d);
+                });
+
+                const allLogs = [...firestoreLogs, ...getCombinedRawLogs()];
+                processAndRenderLogs(allLogs);
+            }, error => {
+                console.warn('Firestore onSnapshot listener fallback:', error);
+                const dot = document.getElementById('db-status-dot');
+                const text = document.getElementById('db-status-text');
+                if (dot) dot.className = "w-2.5 h-2.5 rounded-full bg-amber-600 inline-block animate-pulse me-1.5";
+                if (text) text.textContent = "Offline Mode";
+                processAndRenderLogs(getCombinedRawLogs());
+            });
+        }
+
+        /**
+         * PROCESS AND RENDER LOGS
+         */
+        function processAndRenderLogs(logsArray) {
+            const todayStr = new Date().toISOString().split('T')[0];
+            let todayClicksCount = 0;
+
+            // Grouping map: Key = Name + Institution + RoleClass
+            const groupingMap = new Map();
+
+            logsArray.forEach(log => {
+                const name = (log.fullName || 'Peserta Noname').trim();
+                const inst = (log.institution || 'SDN 85 Kota Bengkulu').trim();
+                const role = (log.roleClass || 'Siswa').trim();
+
+                const groupKey = `${name}___${inst}___${role}`.toLowerCase();
+
+                if (log.visitDate === todayStr) {
+                    todayClicksCount++;
+                }
+
+                if (!groupingMap.has(groupKey)) {
+                    groupingMap.set(groupKey, {
+                        fullName: name,
+                        institution: inst,
+                        roleClass: role,
+                        clickCount: 1,
+                        lastDevice: log.deviceType || 'HP',
+                        lastVisitDate: log.visitDate || todayStr,
+                        lastEntryTime: log.entryTime || '00:00:00'
+                    });
+                } else {
+                    const item = groupingMap.get(groupKey);
+                    item.clickCount += 1;
+                    item.lastDevice = log.deviceType || item.lastDevice;
+                    item.lastVisitDate = log.visitDate || item.lastVisitDate;
+                    item.lastEntryTime = log.entryTime || item.lastEntryTime;
+                }
+            });
+
+            currentGroupedRecap = Array.from(groupingMap.values());
+
+            // Update UI Stats Cards
+            document.getElementById('stat-unique-visitors').textContent = currentGroupedRecap.length;
+            document.getElementById('stat-today-clicks').textContent = todayClicksCount;
+
+            // Render Recap Table
+            renderRecapTable(currentGroupedRecap);
+        }
+
+        function renderRecapTable(recapList) {
+            const tbody = document.getElementById('recap-table-body');
+            if (!recapList || recapList.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="p-8 text-center text-slate-400 italic">
+                            Belum ada log kunjungan yang tercatat. Silakan isi form presensi!
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            // Sort by highest click count first
+            recapList.sort((a, b) => b.clickCount - a.clickCount);
+
+            tbody.innerHTML = recapList.map((item, index) => `
+                <tr class="hover:bg-amber-50/60 transition-colors">
+                    <td class="p-3 text-center font-bold text-slate-500">${index + 1}</td>
+                    <td class="p-3 font-extrabold text-slate-800">${escapeHtml(item.fullName)}</td>
+                    <td class="p-3">${escapeHtml(item.institution)}</td>
+                    <td class="p-3"><span class="px-2.5 py-1 bg-slate-100 rounded-lg text-xs font-bold text-slate-700">${escapeHtml(item.roleClass)}</span></td>
+                    <td class="p-3 text-center">
+                        <span class="px-3 py-1 bg-rose-100 text-rose-700 font-black rounded-full text-xs inline-block">
+                            ${item.clickCount}x Klik
+                        </span>
+                    </td>
+                    <td class="p-3 text-center text-xs text-slate-500 font-semibold">
+                        <span class="inline-flex items-center gap-1">
+                            <i class="fa-solid fa-mobile-screen text-amber-500"></i> ${escapeHtml(item.lastDevice)}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        window.exportRecapToExcel = function() {
+            if (!currentGroupedRecap || currentGroupedRecap.length === 0) {
+                showToast("Tidak ada data rekap untuk diexport", "info");
+                return;
+            }
+
+            const excelRows = currentGroupedRecap.map((item, idx) => ({
+                "NO": idx + 1,
+                "NAMA PESERTA": item.fullName,
+                "INSTANSI / SEKOLAH": item.institution,
+                "KELAS / JABATAN": item.roleClass,
+                "JUMLAH KLIK": item.clickCount + "x",
+                "PERANGKAT TERAKHIR": item.lastDevice
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(excelRows);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Rekap Kunjungan Peserta");
+
+            XLSX.writeFile(workbook, `Rekap_Kunjungan_GEMILANG_SDN85_${new Date().toISOString().split('T')[0]}.xlsx`);
+            showToast("Berhasil mendownload file Excel Rekap Peserta!", "success");
+        };
+
+        function checkPresenceStatus() {
+            const user = getCurrentUserIdentity();
+            if (user.fullName) {
+                document.getElementById('gate-locked-view').classList.add('hidden');
+                document.getElementById('user-profile-bar').classList.remove('hidden');
+                document.getElementById('user-display-name').textContent = user.fullName;
+                document.getElementById('user-display-details').textContent = `${user.institution} • ${user.roleClass}`;
+                switchMode('belajar');
+            } else {
+                document.getElementById('gate-locked-view').classList.remove('hidden');
+                document.getElementById('user-profile-bar').classList.add('hidden');
+            }
+        }
+
+        window.switchMode = function(mode) {
+            const user = getCurrentUserIdentity();
+            if (!user.fullName && mode !== 'rekap') {
+                openPresenceModal();
+                return;
+            }
+
+            ['belajar', 'kalimat', 'cocokkan', 'kuis', 'rekap'].forEach(m => {
+                const sec = document.getElementById(`section-${m}`);
+                const navBtn = document.getElementById(`nav-${m}`);
+                if (sec) sec.classList.add('hidden');
+                if (navBtn) {
+                    navBtn.className = "px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-amber-950 hover:bg-white/40 flex items-center gap-1.5 whitespace-nowrap";
+                }
+            });
+
+            const targetSec = document.getElementById(`section-${mode}`);
+            const targetNav = document.getElementById(`nav-${mode}`);
+            if (targetSec) targetSec.classList.remove('hidden');
+            if (targetNav) {
+                targetNav.className = "px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-white text-rose-600 shadow-md flex items-center gap-1.5 whitespace-nowrap";
+            }
+
+            if (mode === 'belajar') renderBelajarCard();
+            else if (mode === 'kalimat') renderKalimatCard();
+            else if (mode === 'cocokkan') initMatchingGame();
+            else if (mode === 'kuis') renderQuizQuestion();
+        };
+
+        window.openPresenceModal = function() {
+            const user = getCurrentUserIdentity();
+            if (user.fullName) {
+                document.getElementById('input-full-name').value = user.fullName;
+                document.getElementById('input-institution').value = user.institution;
+                document.getElementById('input-role-class').value = user.roleClass;
+            }
+            document.getElementById('presence-modal').classList.remove('hidden');
+        };
+
+        window.closePresenceModal = function() {
+            document.getElementById('presence-modal').classList.add('hidden');
+        };
+
+        window.openSchemaModal = function() {
+            document.getElementById('schema-modal').classList.remove('hidden');
+        };
+
+        window.closeSchemaModal = function() {
+            document.getElementById('schema-modal').classList.add('hidden');
+        };
+
+        window.handlePresenceSubmit = async function(event) {
+            event.preventDefault();
+            const fullName = document.getElementById('input-full-name').value.trim();
+            const institution = document.getElementById('input-institution').value.trim();
+            const roleClass = document.getElementById('input-role-class').value.trim();
+
+            if (!fullName || !institution || !roleClass) return;
+
+            localStorage.setItem('gemilang_user_fullname', fullName);
+            localStorage.setItem('gemilang_user_institution', institution);
+            localStorage.setItem('gemilang_user_roleclass', roleClass);
+
+            closePresenceModal();
+            checkPresenceStatus();
+
+            // RECORD VISIT CLICK LOG TO FIRESTORE
+            await recordNewClickLog(true);
+
+            if (typeof confetti === 'function') confetti({ particleCount: 50, spread: 70 });
+        };
+
+        // Vocabulary Engine
+        function renderBelajarCard() {
+            const item = dictionary[currentWordIndex];
+            document.getElementById('belajar-judul-besar').textContent = item.bengkuluWord;
+            document.getElementById('belajar-id-kata').textContent = item.idWord;
+            document.getElementById('belajar-id-arti').textContent = item.idMeaning;
+            
+            document.getElementById('belajar-bengkulu-kata').textContent = item.bengkuluWord;
+            document.getElementById('belajar-bengkulu-arti').textContent = item.bengkuluMeaning;
+            document.getElementById('belajar-bengkulu-ilustrasi').innerHTML = item.svgIcon;
+
+            document.getElementById('belajar-en-kata').textContent = item.enWord;
+            document.getElementById('belajar-en-arti').textContent = item.enMeaning;
+
+            document.getElementById('belajar-index-now').textContent = currentWordIndex + 1;
+            document.getElementById('belajar-index-total').textContent = dictionary.length;
+        }
+
+        window.navigateWord = function(dir) {
+            currentWordIndex += dir;
+            if (currentWordIndex < 0) currentWordIndex = dictionary.length - 1;
+            if (currentWordIndex >= dictionary.length) currentWordIndex = 0;
+            renderBelajarCard();
+        };
+
+        window.speak = function(langType) {
+            const item = dictionary[currentWordIndex];
+            let text = item.idWord;
+            let langCode = 'id-ID';
+
+            if (langType === 'bengkulu') text = item.bengkuluWord;
+            else if (langType === 'en') { text = item.enWord; langCode = 'en-US'; }
+
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = langCode;
+                window.speechSynthesis.speak(utterance);
+            }
+        };
+
+        // Sentence Engine
+        function renderKalimatCard() {
+            const sent = sentences[currentSentenceIndex];
+            document.getElementById('kalimat-id').textContent = sent.id;
+            document.getElementById('kalimat-bengkulu').textContent = sent.bengkulu;
+            document.getElementById('kalimat-en').textContent = sent.en;
+
+            document.getElementById('kalimat-index-now').textContent = currentSentenceIndex + 1;
+            document.getElementById('kalimat-index-total').textContent = sentences.length;
+        }
+
+        window.navigateKalimat = function(dir) {
+            currentSentenceIndex += dir;
+            if (currentSentenceIndex < 0) currentSentenceIndex = sentences.length - 1;
+            if (currentSentenceIndex >= sentences.length) currentSentenceIndex = 0;
+            renderKalimatCard();
+        };
+
+        window.speakKalimat = function(langType) {
+            const sent = sentences[currentSentenceIndex];
+            let text = sent.id;
+            let langCode = 'id-ID';
+
+            if (langType === 'bengkulu') text = sent.bengkulu;
+            else if (langType === 'en') { text = sent.en; langCode = 'en-US'; }
+
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = langCode;
+                window.speechSynthesis.speak(utterance);
+            }
+        };
+
+        // Matching Game Engine
+        let matchSelectedLeft = null;
+        let matchSelectedRight = null;
+        let matchedPairsCount = 0;
+
+        function initMatchingGame() {
+            matchedPairsCount = 0;
+            matchSelectedLeft = null;
+            matchSelectedRight = null;
+            document.getElementById('match-feedback').textContent = '';
+
+            const items = dictionary.slice(0, 5);
+            const leftItems = [...items].sort(() => Math.random() - 0.5);
+            const rightItems = [...items].sort(() => Math.random() - 0.5);
+
+            const leftCol = document.getElementById('match-col-left');
+            const rightCol = document.getElementById('match-col-right');
+
+            leftCol.innerHTML = leftItems.map(item => `
+                <button onclick="selectMatchLeft(this, '${item.bengkuluWord}', '${item.idWord}')" class="match-left-btn w-full p-4 bg-emerald-100 hover:bg-emerald-200 text-emerald-950 font-black rounded-2xl border-2 border-emerald-300 shadow-sm transition-all text-left text-sm flex justify-between items-center">
+                    <span>🌾 ${item.bengkuluWord}</span>
+                    <i class="fa-solid fa-circle-dot text-emerald-500 text-xs"></i>
+                </button>
+            `).join('');
+
+            rightCol.innerHTML = rightItems.map(item => `
+                <button onclick="selectMatchRight(this, '${item.idWord}')" class="match-right-btn w-full p-4 bg-rose-100 hover:bg-rose-200 text-rose-950 font-black rounded-2xl border-2 border-rose-300 shadow-sm transition-all text-left text-sm flex justify-between items-center">
+                    <span>🇮🇩 ${item.idWord}</span>
+                    <i class="fa-solid fa-circle-dot text-rose-500 text-xs"></i>
+                </button>
+            `).join('');
+        }
+
+        window.selectMatchLeft = function(btn, bengkuluWord, idWordTarget) {
+            document.querySelectorAll('.match-left-btn').forEach(b => b.classList.remove('ring-4', 'ring-amber-400', 'bg-amber-200'));
+            btn.classList.add('ring-4', 'ring-amber-400', 'bg-amber-200');
+            matchSelectedLeft = { btn, target: idWordTarget };
+            checkMatchingPair();
+        };
+
+        window.selectMatchRight = function(btn, idWord) {
+            document.querySelectorAll('.match-right-btn').forEach(b => b.classList.remove('ring-4', 'ring-amber-400', 'bg-amber-200'));
+            btn.classList.add('ring-4', 'ring-amber-400', 'bg-amber-200');
+            matchSelectedRight = { btn, idWord };
+            checkMatchingPair();
+        };
+
+        function checkMatchingPair() {
+            if (!matchSelectedLeft || !matchSelectedRight) return;
+
+            const feedback = document.getElementById('match-feedback');
+
+            if (matchSelectedLeft.target === matchSelectedRight.idWord) {
+                matchSelectedLeft.btn.className = "w-full p-4 bg-emerald-500 text-white font-black rounded-2xl border-2 border-emerald-600 shadow opacity-60 pointer-events-none text-left text-sm flex justify-between items-center";
+                matchSelectedRight.btn.className = "w-full p-4 bg-emerald-500 text-white font-black rounded-2xl border-2 border-emerald-600 shadow opacity-60 pointer-events-none text-left text-sm flex justify-between items-center";
+
+                matchSelectedLeft = null;
+                matchSelectedRight = null;
+                matchedPairsCount++;
+
+                feedback.className = "text-center py-2 min-h-[32px] font-black text-emerald-600";
+                feedback.textContent = "✨ Pasangan Cocok!";
+
+                if (matchedPairsCount === 5) {
+                    feedback.textContent = "🏆 Hebat Sekali! Semua kata berhasil dicocokkan!";
+                    if (typeof confetti === 'function') confetti({ particleCount: 70, spread: 80 });
+                }
+            } else {
+                feedback.className = "text-center py-2 min-h-[32px] font-black text-rose-600";
+                feedback.textContent = "❌ Belum cocok, silakan coba pasangan lain!";
+            }
+        }
+
+        window.resetMatchingGame = function() {
+            initMatchingGame();
+        };
+
+        // Quiz Engine
+        function renderQuizQuestion() {
+            document.getElementById('quiz-box').classList.remove('hidden');
+            document.getElementById('quiz-finished-box').classList.add('hidden');
+            document.getElementById('btn-next-quiz').classList.add('hidden');
+            document.getElementById('quiz-feedback').textContent = '';
+
+            const current = quizData[quizCurrentIndex];
+            document.getElementById('quiz-question-emoji').textContent = current.emoji;
+            document.getElementById('quiz-question-text').textContent = current.question;
+
+            document.getElementById('quiz-progress-text').textContent = `Soal ${quizCurrentIndex + 1} dari ${quizData.length}`;
+            document.getElementById('quiz-progress-bar').style.width = `${((quizCurrentIndex + 1) / quizData.length) * 100}%`;
+            document.getElementById('quiz-score').textContent = quizScore;
+
+            const optsContainer = document.getElementById('quiz-options-container');
+            optsContainer.innerHTML = current.options.map((opt, idx) => `
+                <button onclick="submitQuizAnswer(this, ${idx})" class="quiz-opt-btn p-4 rounded-2xl bg-amber-100 hover:bg-amber-200 text-amber-950 font-bold border-2 border-amber-300 shadow-sm transition-all text-sm active:scale-95 text-left">
+                    <span class="font-black text-amber-700 me-2">${String.fromCharCode(65 + idx)}.</span> ${escapeHtml(opt)}
+                </button>
+            `).join('');
+        }
+
+        window.submitQuizAnswer = function(btnElem, chosenIdx) {
+            document.querySelectorAll('.quiz-opt-btn').forEach(b => b.disabled = true);
+
+            const current = quizData[quizCurrentIndex];
+            const feedback = document.getElementById('quiz-feedback');
+
+            if (chosenIdx === current.correct) {
+                btnElem.className = "p-4 rounded-2xl bg-emerald-500 text-white font-bold border-2 border-emerald-600 shadow text-sm text-left";
+                quizScore += 20;
+                document.getElementById('quiz-score').textContent = quizScore;
+                feedback.className = "text-base font-black text-emerald-600 mt-2";
+                feedback.textContent = "✨ Jawaban Anda Benar! +20 Poin";
+            } else {
+                btnElem.className = "p-4 rounded-2xl bg-rose-500 text-white font-bold border-2 border-rose-600 shadow text-sm text-left";
+                feedback.className = "text-base font-black text-rose-600 mt-2";
+                feedback.textContent = `❌ Belum Tepat. Jawaban benar: ${current.options[current.correct]}`;
+            }
+
+            document.getElementById('btn-next-quiz').classList.remove('hidden');
+        };
+
+        window.nextQuizQuestion = function() {
+            quizCurrentIndex++;
+            if (quizCurrentIndex < quizData.length) renderQuizQuestion();
+            else showQuizResults();
+        };
+
+        function showQuizResults() {
+            document.getElementById('quiz-box').classList.add('hidden');
+            document.getElementById('quiz-finished-box').classList.remove('hidden');
+            document.getElementById('quiz-final-score').textContent = quizScore;
+            if (typeof confetti === 'function') confetti({ particleCount: 80, spread: 90 });
+        }
+
+        window.restartQuiz = function() {
+            quizCurrentIndex = 0;
+            quizScore = 0;
+            renderQuizQuestion();
+        };
+
+        function showToast(message, type = 'info') {
+            const toastContainer = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let bgClass = "bg-slate-900 text-white border-2 border-slate-700";
+            let iconClass = "fa-circle-info text-amber-400";
+
+            if (type === 'success') {
+                bgClass = "bg-emerald-900 text-emerald-50 border-2 border-emerald-500";
+                iconClass = "fa-circle-check text-emerald-400";
+            }
+
+            toast.className = `p-4 rounded-2xl shadow-2xl flex items-center gap-3 text-xs sm:text-sm font-bold font-sans transition-all duration-300 transform translate-y-2 opacity-0 pointer-events-auto ${bgClass}`;
+            toast.innerHTML = `
+                <i class="fa-solid ${iconClass} text-xl"></i>
+                <div class="flex-grow">${escapeHtml(message)}</div>
+                <button class="text-white/70 hover:text-white ms-2 text-base font-bold" onclick="this.parentElement.remove()">&times;</button>
+            `;
+
+            toastContainer.appendChild(toast);
+            setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.classList.add('opacity-0');
+                    setTimeout(() => toast.remove(), 300);
+                }
+            }, 4000);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+
+        // Initialize App on DOM Loaded
+        window.addEventListener('DOMContentLoaded', () => {
+            initRealtimeLogsListener();
+            checkPresenceStatus();
         });
-        */
     </script>
 </body>
 </html>
